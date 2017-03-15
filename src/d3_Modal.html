@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Master Thesis</title>
+
+    <link href="css/m_main.css" rel="stylesheet">
+</head>
+<body>
+
+<!--<div id="simpleTable"></div>-->
+
+<button id="btnCreateNewCohort" type="button" class="btn">Create New Cohort</button>
+
+<!-- Modal -->
+<div id="myModal" class="modal">
+
+    <!-- Modal content -->
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="close-modal">&times;</span>
+            <h2>Create New Cohort</h2>
+        </div>
+        <div class="modal-body">
+            <form>
+                <fieldset>
+                    <label for="cohortLabel">Give a label for this cohort</label>
+                    <input id="cohortLabel" type="text" minlength="1" maxlength="80" autofocus required>
+                </fieldset>
+                <fieldset>
+                    <legend>SEX</legend>
+                    <label for="sexAll">all</label><input id="sexAll" type="radio">
+                    <label for="onlyMale">only male</label><input id="onlyMale" type="checkbox">
+                    <label for="onlyFemale">only female</label><input id="onlyFemale" type="checkbox">
+                </fieldset>
+                <fieldset>
+                    <legend>AGE</legend>
+                    <input type="number" min="1" max="200"> - <input type="number" min="1" max="200">
+                    <label>>=</label><input type="number" min="1" max="200">
+                    <label>=<</label><input type="number" min="1" max="200">
+                </fieldset>
+                <fieldset>
+                    <legend>DIAGNOSIS</legend>
+                    <label for="primaryDiagnosis">Primary Diagnosis</label> <input id="primaryDiagnosis" type="text" maxlength="4">
+                    <br><br>
+                    <label for="additionalDiagnosis">Additional Diagnosis</label> <input id="additionalDiagnosis" type="text">
+                    <br><br>
+                    <label for="excludedDiagnosis">Excluded Diagnosis</label> <input id="excludedDiagnosis" type="text">
+                </fieldset>
+                <fieldset>
+                    <legend>MEDICATION</legend>
+                    <label for="includedMedication">Additional Diagnosis</label> <input id="includedMedication" type="text">
+                    <br><br>
+                    <label for="excludedMedication">Excluded Diagnosis</label> <input id="excludedMedication" type="text">
+                </fieldset>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn cancel-modal">Cancel</button>
+            <button type="button" class="btn save-modal">Save</button>
+        </div>
+    </div>
+
+</div>
+
+<script src="../lib/d3js/d3.js"></script>
+<script src="js/d3_modal.js"></script>
+
+</body>
+</html>

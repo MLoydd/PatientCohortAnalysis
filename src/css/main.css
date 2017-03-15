@@ -1,0 +1,47 @@
+#chart {
+    height: 1500px;
+    display: flex;
+    justify-content: center;
+}
+
+.node line {
+    stroke: #ff0000;
+    stroke-width: 3;
+}
+
+.node rect {
+    shape-rendering: crispEdges;
+    fill: #B0C4DE;
+    stroke: #000000;
+}
+
+/*.node text {
+    text-shadow: 0 1px 0 #fff;
+}*/
+
+.link {
+    fill: none;
+    stroke: #000;
+    stroke-opacity: .2;
+}
+
+.link:hover {
+    stroke-opacity: .5;
+}
+
+div .hover-triangle {
+    width: 0;
+    height: 0;
+    border-right: 60px solid transparent;
+    border-top: 60px solid #008000;
+    border-left: 60px solid transparent;
+
+    position: absolute;
+    alignment-baseline: central;
+}
+
+.query {
+    width: 150px;
+    position: absolute;
+    z-index: 7;
+}
