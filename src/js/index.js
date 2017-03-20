@@ -12,9 +12,9 @@ d3.csv("./csv/data.csv", function (csv) {
     csv.forEach(function (row) {
         var obj = {};
         obj.key = parseInt(row.JournalTableForm_Key);
-        obj.unit = row.Enhet;
+        obj.unit = row.Enhet.toLowerCase();
         obj.unitID = parseInt(row.Enhet_ID);
-        obj.journal = row.JournalTableForm;
+        obj.journal = row.JournalTableForm.toLowerCase();
         obj.patientID = parseInt(row.P_ID);
         obj.column = parseInt(row.Kolumn);
         obj.dateTime = row.Journal_Datetime; //TODO add proper parsing
@@ -25,13 +25,13 @@ d3.csv("./csv/data.csv", function (csv) {
         obj.contactID = parseInt(row.KontaktId);
         obj.contactStartDateTime = row.Kontaktstart; //TODO add proper parsing for Date
         obj.contactDate = row.KontaktstartText; //TODO add proper parsing for Date
-        obj.headDiagnosis = row.Huvuddiagnos;
-        obj.diagnosisList = row.Diagnosstrang;
-        obj.contactStatus = row.Kontaktstatus;
+        obj.headDiagnosis = row.Huvuddiagnos.toLowerCase();
+        obj.diagnosisList = row.Diagnosstrang.toLowerCase().split(",");
+        obj.contactStatus = row.Kontaktstatus.toLowerCase();
         obj.inContact = Boolean(parseInt(row.InomKontakt));
-        obj.sex = row.Kon;
+        obj.sex = row.Kon.toLowerCase();
         obj.patientAge = parseInt(row.PatientAlder);
-        obj.patientCounty = row.PatientLan;
+        obj.patientCounty = row.PatientLan.toLowerCase();
         obj.arom = parseInt(row.AROM);
         obj.bk = parseInt(row.BK);
         obj.muscleStrength = parseInt(row.Muskelstyrka);
@@ -48,11 +48,12 @@ d3.csv("./csv/data.csv", function (csv) {
 });
 
 function initApp() {
-    initControlElements();
-    initDrawing();
-    addNewProperty("All Patients");
-    addNewNode("All Patients", "All Patients");
     console.log("index: " + dataset.length);
+    initControlElements();
+    initDrawing(screen.width, screen.height);
+    setCustomScale([0, dataset.length], [0, 1000]);
+    addNewProperty("All Patients");
+    addNewNode("All Patients", "All Patients", dataset);
 }
 
 function initControlElements() {
@@ -63,19 +64,42 @@ function initControlElements() {
     divQuery.append("button").text("Create").style("width", "50%").on("click", createNewQueryNode);
 
     d3.select("#controller").append("div").attr("id", "divTriangle").attr("class", "hover-triangle").style("opacity", 0)
-        .on("mouseover", displayTriangleElement)
-        .on("mouseout", hideTriangleElement)
-        .on("click", displayQueryFieldset);
+        .on("mouseover", displayTriangleElement).on("mouseout", hideTriangleElement).on("click", displayQueryFieldset);
 }
 
 function createNewQueryNode() {
     var inputPropertyName = d3.select("#inputPropertyName");
-    var propertyName = inputPropertyName.property("value");
-
     var inputNodeQuery = d3.select("#inputNodeQuery");
-    var nodeQuery = inputNodeQuery.property("value");
+    if (!isInputValid(inputPropertyName) || !isInputValid(inputNodeQuery)) {
+        return;
+    }
 
-    if (isInputStringEmpty(inputPropertyName) || isInputStringEmpty(inputNodeQuery)) {
+    var propertyName = inputPropertyName.property("value");
+    var query = inputNodeQuery.property("value").trim();
+
+    var key = findProperty(propertyName);
+    if (key == null) {
+        alert("Property is NOT Existing");
+        highlightElementBorder(inputPropertyName);
+        return;
+    }
+
+    var op = findAnyOperatorInString(query);
+    console.log("op: " + op);
+    var hyphenSplit = query.split("-");
+
+    var cohort;
+    if (hyphenSplit.length == 1) {
+        op = op[0];
+        var val = query.replace(op, "").trim().toLowerCase();
+        cohort = executeQuery(key, op, val);
+    } else {
+        cohort = executeQuery2(key, "-", hyphenSplit[0].trim().toLowerCase(), hyphenSplit[1].trim().toLowerCase());
+    }
+
+    if (cohort.length == 0) {
+        alert("NO Patient found with this condition");
+        highlightElementBorder(inputNodeQuery);
         return;
     }
 
@@ -83,20 +107,43 @@ function createNewQueryNode() {
         addNewProperty(propertyName);
     }
 
-    var query = nodeQuery.trim();
-    var op = query.charAt(0);
-    query = query.substring(1).trim();
-    console.log(query);
-
-    var key = findProperty(propertyName);
-    var cohort = executeQuery(key, 40);
+    addNewNode(propertyName, query, cohort);
 
     hideQueryFieldset();
 }
 
-function executeQuery(property, query) {
-    var cohort = dataset.filter(function (currentValue) {
-        if (currentValue.patientAge > 40) {
+function isInputValid(element) {
+    if (isInputStringEmpty(element.property("value"))) {
+        highlightElementBorder(element);
+        return false;
+    }
+    return true;
+}
+
+function performComparisionOperation(operator, leftOperand, rightOperand, addOperand) {
+    switch (operator) {
+        case ">":
+            return leftOperand > rightOperand;
+        case "<":
+            return leftOperand < rightOperand;
+        case ">=":
+            return leftOperand >= rightOperand;
+        case "<=":
+            return leftOperand <= rightOperand;
+        case "=":
+            return leftOperand == rightOperand;
+        case "-":
+            return leftOperand >= rightOperand && leftOperand <= addOperand;
+        case null:
+            return leftOperand == rightOperand;
+        default:
+            console.log("Unknown operator: " + operator);
+    }
+}
+
+function executeQuery(property, operator, query) {
+    var cohort = selectedCohort.filter(function (currentValue) {
+        if (performComparisionOperation(operator, currentValue[property], query)) {
             return currentValue;
         }
     });
@@ -105,56 +152,97 @@ function executeQuery(property, query) {
     return cohort;
 }
 
+function executeQuery2(property, operator, query, addQuery) {
+    var cohort = selectedCohort.filter(function (currentValue) {
+        if (performComparisionOperation(operator, currentValue[property], query, addQuery)) {
+            return currentValue;
+        }
+    });
+
+    console.log(cohort.length);
+    return cohort;
+}
+
+var selectedCohort;
+function updateSelectedCohort(cohort) {
+    selectedCohort = cohort;
+}
+
 function findProperty(property) {
     var regex = new RegExp(property, "i");
 
     var obj = dataset[0];
-    for (var k in obj) {
-        if (regex.exec(k)) {
-            return k;
+    for (var key in obj) {
+        if (obj.hasOwnProperty(key) && regex.exec(key)) {
+            return key;
         }
     }
+
+    return null;
 }
 
-function stringContainsOperator(query) {
-    var regex = new RegExp("[<>]=?|!?=");
-    if(regex.test(query)){
-        return true;
+var propertyList = [];
+function isPropertyExisting(propertyName) {
+    for (var i in propertyList) {
+        if (propertyList[i].toLowerCase() == propertyName.toLowerCase()) {
+            console.log("Property is existing: " + propertyName);
+            return true;
+        }
     }
+
     return false;
-}
-
-function findAnyOperator(query) {
-    if(!stringContainsOperator(query)){
-        return null;
-    }
-
-
 }
 
 function displayQueryFieldset() {
     hideTriangleElement();
 
     var divQuery = d3.select("#divQuery");
-    displayElementOnMouseOverEvent(divQuery, 200);
+    displayElementOnMouseOverEvent(divQuery, 200, displayingPos);
 }
 
 function hideQueryFieldset() {
     var divQuery = d3.select("#divQuery");
     transactionOnMouseOutEvent(divQuery, 200);
+    d3.select("#inputPropertyName").property("value", "");
+    d3.select("#inputNodeQuery").property("value", "");
+    d3.select("#divTriangle").style("left", 0).style("top", 0);
+    d3.select("#divQuery").style("left", 0).style("top", 0);
 }
 
-function displayTriangleElement() {
-    var divQuery = d3.select("#divQuery");
-    if (divQuery.style("opacity") != 0) {
+var displayingPos;
+function displayTriangleElement(cohort, displayPosX, displayPosY) {
+
+    if (d3.select("#divQuery").style("opacity") != 0) {
         return;
     }
 
+    if (event.currentTarget.id != "divTriangle") {
+        displayingPos = calculateTrianglePosition(displayPosX, displayPosY);
+        updateSelectedCohort(cohort);
+    }
+
     var divTriangle = d3.select("#divTriangle");
-    displayElementOnMouseOverEvent(divTriangle, 200);
+    displayElementOnMouseOverEvent(divTriangle, 200, displayingPos);
 }
+
+/*function displayTriangleElementBasedOnMousePosition() {
+
+ if (d3.select("#divQuery").style("opacity") != 0) {
+ return;
+ }
+
+ var divTriangle = d3.select("#divTriangle");
+ displayElementOnMouseOverEventBasedOnMousePosition(divTriangle, 200);
+ }*/
 
 function hideTriangleElement() {
     var divTriangle = d3.select("#divTriangle");
     transactionOnMouseOutEvent(divTriangle, 200);
+}
+
+function calculateTrianglePosition(displayPosX, displayPosY) {
+    var coordinates = getSVGCoordinates();
+    var left = coordinates.left + displayPosX - 60;
+    var top = coordinates.top + displayPosY;
+    return [left, top];
 }

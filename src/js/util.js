@@ -6,18 +6,40 @@ function trimAllWhiteSpace(string) {
     return string.replace(/\s+/g, '');
 }
 
-function isInputStringEmpty(element) {
-    var value = element.property("value");
-    if(!value || value.trim() == "") {
-        element.style("border-color", "#ff0000");
-        return true;
-    }
-    return false;
+function isInputStringEmpty(str) {
+    return !str || str.trim() == "";
 }
 
-function displayElementOnMouseOverEvent(element, transitionDuration) {
+function highlightElementBorder(element) {
+    element.style("border-color", "#ff0000");
+}
+
+function findHyphenInString(string) {
+    //var regex = new RegExp("^(?=.*-)[a-zA-Z0-9-]+$");
+}
+
+function findAnyOperatorInString(query) {
+    var regex = new RegExp("[<>]=?|!?=");
+    return regex.exec(query);
+}
+
+var operators = {
+    "<" : function (a, b) {return a < b;},
+    ">" : function (a, b) {return a > b;},
+    "<=" : function (a, b) {return a <= b;},
+    ">=" : function (a, b) {return a >= b;}
+};
+
+
+
+/*function displayElementOnMouseOverEventBasedOnMousePosition(element, transitionDuration) {
     transactionOnMouseOverEvent(element, transitionDuration);
     element.style("left", (event.pageX - 50) + "px").style("top", (event.pageY) + "px");
+}*/
+
+function displayElementOnMouseOverEvent(element, transitionDuration, displayingPos) {
+    transactionOnMouseOverEvent(element, transitionDuration);
+    element.style("left", displayingPos[0] + "px").style("top", displayingPos[1] + "px");
 }
 
 function transactionOnMouseOutEvent(element, transitionDuration) {
