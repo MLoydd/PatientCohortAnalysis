@@ -58,10 +58,13 @@ function initApp() {
 
 function initControlElements() {
     var divQuery = d3.select("#controller").append("div").attr("id", "divQuery").attr("class", "query").style("opacity", 0);
-    divQuery.append("input").attr("id", "inputPropertyName").style("width", "97.5%").attr("autofocus", "true");
+    divQuery.append("input").attr("id", "inputPropertyName").style("width", "97.5%");
     divQuery.append("input").attr("id", "inputNodeQuery").style("width", "97.5%");
     divQuery.append("button").text("Cancel").style("width", "50%").on("click", hideQueryFieldset);
-    divQuery.append("button").text("Create").style("width", "50%").on("click", createNewQueryNode);
+    divQuery.append("button").text("Create").style("width", "50%").on("click", createNewQueryNode)
+        .on("keypress", function () {
+            
+        });
 
     d3.select("#controller").append("div").attr("id", "divTriangle").attr("class", "hover-triangle").style("opacity", 0)
         .on("mouseover", displayTriangleElement).on("mouseout", hideTriangleElement).on("click", displayQueryFieldset);
@@ -84,17 +87,19 @@ function createNewQueryNode() {
         return;
     }
 
+    var cohort;
+
     var op = findAnyOperatorInString(query);
     console.log("op: " + op);
     var hyphenSplit = query.split("-");
-
-    var cohort;
-    if (hyphenSplit.length == 1) {
-        op = op[0];
-        var val = query.replace(op, "").trim().toLowerCase();
-        cohort = executeQuery(key, op, val);
-    } else {
+    if(hyphenSplit.length > 1){
         cohort = executeQuery2(key, "-", hyphenSplit[0].trim().toLowerCase(), hyphenSplit[1].trim().toLowerCase());
+    } else if (op) {
+        op = op[0];
+        var val = query.replace(op, "").trim();
+        cohort = executeQuery(key, op, val.toLowerCase());
+    } else {
+        cohort = executeQuery(key, null, query.toLowerCase());
     }
 
     if (cohort.length == 0) {
@@ -197,6 +202,7 @@ function displayQueryFieldset() {
     hideTriangleElement();
 
     var divQuery = d3.select("#divQuery");
+    document.getElementById("inputPropertyName").focus();
     displayElementOnMouseOverEvent(divQuery, 200, displayingPos);
 }
 
