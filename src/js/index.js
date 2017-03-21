@@ -144,7 +144,7 @@ function executeQuery(property, operator, query) {
         }
     });
 
-    console.log(cohort.length);
+    console.log("executeQuery : " + cohort.length);
     return cohort;
 }
 

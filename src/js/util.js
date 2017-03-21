@@ -14,9 +14,9 @@ function highlightElementBorder(element) {
     element.style("border-color", "#ff0000");
 }
 
-function findHyphenInString(string) {
-    //var regex = new RegExp("^(?=.*-)[a-zA-Z0-9-]+$");
-}
+/*function findHyphenInString(string) {
+    var regex = new RegExp("^(?=.*-)[a-zA-Z0-9-]+$");
+}*/
 
 function findAnyOperatorInString(query) {
     var regex = new RegExp("[<>]=?|!?=");
@@ -36,7 +36,7 @@ function performComparisionOperation(operator, leftOperand, rightOperand, addOpe
         case "=":
             return leftOperand == rightOperand;
         case "-":
-            if (addOperand == null) {
+            if (!addOperand) {
                 return leftOperand >= rightOperand;
             }
             return leftOperand >= rightOperand && leftOperand <= addOperand;
@@ -47,12 +47,12 @@ function performComparisionOperation(operator, leftOperand, rightOperand, addOpe
     }
 }
 
-var operators = {
+/*var operators = {
     "<" : function (a, b) {return a < b;},
     ">" : function (a, b) {return a > b;},
     "<=" : function (a, b) {return a <= b;},
     ">=" : function (a, b) {return a >= b;}
-};
+};*/
 
 function getAllElementOfTypeInContainer(containerElement, typeName) {
     var r = containerElement.selectAll(typeName);

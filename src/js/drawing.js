@@ -34,9 +34,8 @@ function addNewProperty(propertyName) {
     var y = drawingSpecs.nodeHeightHalf + (propertyList.length - 1) * drawingSpecs.propertyDistance;  //TODO refactor
 
     var g = d3.select("#svg").append("g").attr("class", "node").attr("id", trimAllWhiteSpace(propertyName));
-    g.append("text").text(propertyName).attr("x", drawingSpecs.propertyNameWidth).attr("y", y)
-        .attr("text-anchor", "end").attr("alignment-baseline", "middle");
-    g.append("line").attr("x1", drawingSpecs.propertyLine.x1).attr("y1", y).attr("x2", drawingSpecs.propertyLine.x2).attr("y2", y);
+    appendText(g, propertyName, drawingSpecs.propertyNameWidth, y, "end", "central");
+    appendLine(g, drawingSpecs.propertyLine.x1, y, drawingSpecs.propertyLine.x2, y);
 }
 
 function isPropertyExisting(propertyName) {
@@ -51,8 +50,7 @@ function isPropertyExisting(propertyName) {
 }
 
 function addNewNode(propertyName, query, dataset, parentNode) {
-    var gID = trimAllWhiteSpace(propertyName);
-    var g = d3.select("#" + gID);
+    var g = d3.select("#" + trimAllWhiteSpace(propertyName));
     var propertyLinePosY = g.select("line").property("y1").baseVal.value;
 
     var width = calculateNodeWidth(dataset);
@@ -60,33 +58,32 @@ function addNewNode(propertyName, query, dataset, parentNode) {
     var xPos = calculateNodeStartingPosition(g, parentNode, propertyName, width);
     var yPos = propertyLinePosY - drawingSpecs.nodeHeightHalf;
 
-    /*if(parentNode != null && xPos < parentNode.x.baseVal.value) {
-        xPos = parentNode.x.baseVal.value;
-    }*/
-
     var nodeXCenter = xPos + width / 2;
     var nodeYCenter = propertyLinePosY;
 
     var id = trimAllWhiteSpace(propertyName + "_" + query);
-    g.append("rect").attr("id", id).attr("x", xPos).attr("y", yPos).attr("width", width).attr("height", drawingSpecs.nodeHeight)
-        .on("mouseover", function(){displayTriangleElement(dataset, nodeXCenter, yPos + drawingSpecs.nodeHeight)})
+    var node = appendRect(g, id, xPos, yPos, width, drawingSpecs.nodeHeight);
+    node.on("mouseover", function () {
+        displayTriangleElement(dataset, nodeXCenter, yPos + drawingSpecs.nodeHeight)
+    })
         .on("mouseout", hideTriangleElement);
-    g.append("text").text(query).attr("x", nodeXCenter).attr("y", nodeYCenter)
-        .attr("text-anchor", "middle").attr("alignment-baseline", "central");
+    appendText(g, query, nodeXCenter, nodeYCenter, "middle", "central");
+    appendPath(g, parentNode, xPos, yPos, width);
 
-    var parentId = !parentNode? null: parentNode.id;
-    addToNodeList(id, propertyName, query, parentId, dataset, xPos, yPos);
-
-    //linkNodes(sourceX, sourceY, nodeX, nodeY, nodeWidth);
+    addToNodeList(id, propertyName, query, parentNode, dataset, xPos, yPos);
 }
 
 var nodeList = [];
-function addToNodeList(id, propertyName, query, parentId, dataset, xPos, yPos){
+function addToNodeList(id, propertyName, query, parentNode, dataset, xPos, yPos) {
+    if (!parentNode) {
+        return;
+    }
+
     var obj = {};
     obj.id = id;
     obj.propertyName = propertyName;
     obj.query = query;
-    obj.parentId = parentId;
+    obj.parentId = parentNode.id;
     obj.dataset = dataset;
     obj.xPos = xPos;
     obj.yPos = yPos;
@@ -94,15 +91,22 @@ function addToNodeList(id, propertyName, query, parentId, dataset, xPos, yPos){
 }
 
 function getAllChildNodesFromParent(parentId, propertyName) {
-    var nodes = [];
-    for(var key in nodeList){
-        var obj = nodeList[key];
-        if(obj.parentId == parentId && obj.propertyName == propertyName){
-            nodes.push(obj);
+    var nodes = nodeList.filter(function (obj) {
+        if (!propertyName && obj.parentId == parentId) {
+            return obj;
         }
-    }
 
+        if (obj.parentId == parentId && obj.propertyName == propertyName) {
+            return obj;
+        }
+    });
+
+    console.log("getAllChildNodesFromParent: " + nodes.length);
     return nodes;
+}
+
+function setCustomScale(domainArray, rangeArray) {
+    scale.domain(domainArray).range(rangeArray);
 }
 
 function calculateNodeWidth(dataset) {
@@ -111,12 +115,12 @@ function calculateNodeWidth(dataset) {
 
 function calculateNodeStartingPosition(container, parentNode, propertyName, nodeWidth) {
 
-    if(parentNode == null /*&& nodes == null*/) {
+    if (parentNode == null) {
         return drawingSpecs.nodeArea.x1;
     }
 
     var childNodes = getAllChildNodesFromParent(parentNode.id, propertyName);
-    if(childNodes.length == 0) {
+    if (childNodes.length == 0) {
         return parentNode.x.baseVal.value;
     }
 
@@ -127,18 +131,17 @@ function calculateNodeStartingPosition(container, parentNode, propertyName, node
     //isStartingPositionOccupied(container, xStartPos);
 }
 
-
 // TODO : figure out if the node fits in
 function isStartingPositionOccupied(container, xStartPos, xEndPos) {
     var nodes = getAllElementOfTypeInContainer(container, "rect");
 
     var isStartPosOccupied = false;
     var isEndPosOccupied = false;
-    for(var node in nodes) {
+    for (var node in nodes) {
         var nodeXStartPos = node.x.baseVal.value;
         var nodeXEndPos = nodeXStartPos + node.width.baseVal.value;
 
-        if(isStartPosOccupied) {
+        if (isStartPosOccupied) {
             isEndPosOccupied = xEndPos < nodeXStartPos;
         }
 
@@ -148,26 +151,45 @@ function isStartingPositionOccupied(container, xStartPos, xEndPos) {
     }
 }
 
-function setCustomScale(domainArray, rangeArray) {
-    scale.domain(domainArray).range(rangeArray);
-}
-
 function getSVGCoordinates() {
     return document.getElementById("svg").getBoundingClientRect();
 }
 
-// TODO : draw link between parent and node
-function linkNodes(sourceX, sourceY, targetX, targetY, targetDx) {
-    var curvature = .6;
-    var x0 = sourceX,      // sourceX
-        y0 = sourceY,      // sourceY + nodeHeight
-        x1 = targetX,                    // targetX
-        y1 = targetY,
-        dx = targetDx;  // targetY +
+function appendText(container, text, xPos, yPos, textAnchor, alignmentBaseline) {
+    return container.append("text").text(text).attr("x", xPos).attr("y", yPos)
+        .attr("text-anchor", textAnchor).attr("alignment-baseline", alignmentBaseline);
+}
 
-    return "M" + x0 + "," + y0
-        + "H" + dx
-        + "C" + x2 + "," + y0 + " " + x3 + "," + y1 + " " + x1 + "," + y1
-        + "H" + x1
-        + "C" + x3 + "," + (y1+d.target.dy) + " " + x2 + "," + (y0+d.source.dy) + " " + x0 + "," + (y0+d.source.dy);
+function appendLine(container, xPos1, yPos1, xPos2, yPos2) {
+    return container.append("line").attr("x1", xPos1).attr("y1", yPos1).attr("x2", xPos2).attr("y2", yPos2);
+}
+
+function appendRect(container, id, xPos, yPos, width, height) {
+    return container.append("rect").attr("id", id).attr("x", xPos).attr("y", yPos)
+        .attr("width", width).attr("height", height);
+}
+
+function appendPath(container, parentNode, nodeX, nodeY, nodeWidth) {
+    if (!parentNode) {
+        return;
+    }
+
+    var parentXPos = parentNode.x.baseVal.value;
+    var childNodes = getAllChildNodesFromParent(parentNode.id, null);
+    childNodes.forEach(function (obj) {
+        parentXPos += calculateNodeWidth(obj.dataset);
+    });
+
+    var parentYPos = parentNode.y.baseVal.value + drawingSpecs.nodeHeight;
+    var d = composePathD(parentXPos, parentYPos, nodeX, nodeY, nodeWidth);
+
+    return container.append("path").attr("d", d);
+}
+
+function composePathD(parentXPos, parentYPos, nodeXPos, nodeYPos, nodeWidth) {
+    return "M" + parentXPos + "," + parentYPos
+        + "h" + nodeWidth
+        + "V" + nodeYPos
+        + "H" + nodeXPos
+        + "Z";
 }
