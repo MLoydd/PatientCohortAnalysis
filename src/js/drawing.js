@@ -61,7 +61,7 @@ function addNewNode(propertyName, query, dataset, parentNode) {
     var nodeXCenter = xPos + width / 2;
     var nodeYCenter = propertyLinePosY;
 
-    var id = trimAllWhiteSpace(propertyName + "_" + query);
+    var id = composeNodeId(parentNode, propertyName, query);
     var node = appendRect(g, id, xPos, yPos, width, drawingSpecs.nodeHeight);
     node.on("mouseover", function () {
         displayTriangleElement(dataset, nodeXCenter, yPos + drawingSpecs.nodeHeight)
@@ -71,6 +71,14 @@ function addNewNode(propertyName, query, dataset, parentNode) {
     appendPath(g, parentNode, xPos, yPos, width);
 
     addToNodeList(id, propertyName, query, parentNode, dataset, xPos, yPos);
+}
+
+function composeNodeId(parentNode, propertyName, query) {
+    if (!parentNode) {
+        return trimAllWhiteSpace(propertyName + "-" + query);
+    }
+
+    return trimAllWhiteSpace(propertyName + "-" + query + "_" + parentNode.id);
 }
 
 var nodeList = [];

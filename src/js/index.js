@@ -63,7 +63,6 @@ function initControlElements() {
         .on("mouseover", displayTriangleElement).on("mouseout", hideTriangleElement).on("click", displayQueryFieldset);
 }
 
-
 // TODO : extend for other target elements
 function performOnKeyPress() {
     if (event.defaultPrevented) {
@@ -85,6 +84,7 @@ function performOnKeyPress() {
     event.preventDefault();
 }
 
+var selectedNode;
 function createNewQueryNode() {
     var inputPropertyName = d3.select("#inputPropertyName");
     var inputNodeQuery = d3.select("#inputNodeQuery");
@@ -137,6 +137,7 @@ function isInputValid(element) {
     return true;
 }
 
+var selectedCohort;
 function executeQuery(property, operator, query) {
     var cohort = selectedCohort.filter(function (currentValue) {
         if (performComparisionOperation(operator, currentValue[property], query)) {
@@ -157,16 +158,6 @@ function executeQuery2(property, operator, query, addQuery) {
 
     console.log(cohort.length);
     return cohort;
-}
-
-var selectedCohort;
-function updateSelectedCohort(cohort) {
-    selectedCohort = cohort;
-}
-
-var selectedNode;
-function updateSelectedNode(node) {
-    selectedNode = node;
 }
 
 function findProperty(property) {
@@ -191,10 +182,9 @@ function displayQueryFieldset() {
 }
 
 function hideQueryFieldset() {
-    var divQuery = d3.select("#divQuery");
-    transactionOnMouseOutEvent(divQuery, 200);
-    d3.select("#inputPropertyName").property("value", "");
-    d3.select("#inputNodeQuery").property("value", "");
+    transactionOnMouseOutEvent(d3.select("#divQuery"), 200);
+    d3.select("#inputPropertyName").property("value", "").style("border-color", "#ffffff");
+    d3.select("#inputNodeQuery").property("value", "").style("border-color", "#ffffff");
     d3.select("#divTriangle").style("left", 0).style("top", 0);
     d3.select("#divQuery").style("left", 0).style("top", 0);
 }
@@ -208,23 +198,13 @@ function displayTriangleElement(cohort, displayPosX, displayPosY) {
 
     if (event.currentTarget.id != "divTriangle") {
         displayingPos = calculateTrianglePosition(displayPosX, displayPosY);
-        updateSelectedCohort(cohort);
-        updateSelectedNode(event.target);
+        selectedCohort = cohort;
+        selectedNode = event.target;
     }
 
     var divTriangle = d3.select("#divTriangle");
     displayElementOnMouseOverEvent(divTriangle, 200, displayingPos);
 }
-
-/*function displayTriangleElementBasedOnMousePosition() {
-
- if (d3.select("#divQuery").style("opacity") != 0) {
- return;
- }
-
- var divTriangle = d3.select("#divTriangle");
- displayElementOnMouseOverEventBasedOnMousePosition(divTriangle, 200);
- }*/
 
 function hideTriangleElement() {
     var divTriangle = d3.select("#divTriangle");
