@@ -23,6 +23,30 @@ function findAnyOperatorInString(query) {
     return regex.exec(query);
 }
 
+function performComparisionOperation(operator, leftOperand, rightOperand, addOperand) {
+    switch (operator) {
+        case ">":
+            return leftOperand > rightOperand;
+        case "<":
+            return leftOperand < rightOperand;
+        case ">=":
+            return leftOperand >= rightOperand;
+        case "<=":
+            return leftOperand <= rightOperand;
+        case "=":
+            return leftOperand == rightOperand;
+        case "-":
+            if (addOperand == null) {
+                return leftOperand >= rightOperand;
+            }
+            return leftOperand >= rightOperand && leftOperand <= addOperand;
+        case null:
+            return leftOperand == rightOperand;
+        default:
+            console.log("Unknown operator: " + operator);
+    }
+}
+
 var operators = {
     "<" : function (a, b) {return a < b;},
     ">" : function (a, b) {return a > b;},
@@ -30,6 +54,15 @@ var operators = {
     ">=" : function (a, b) {return a >= b;}
 };
 
+function getAllElementOfTypeInContainer(containerElement, typeName) {
+    var r = containerElement.selectAll(typeName);
+    if (r.empty()) {
+        return null;
+    }
+
+    return r.nodes();
+    //return nodes[nodes.length - 1];
+}
 
 
 /*function displayElementOnMouseOverEventBasedOnMousePosition(element, transitionDuration) {

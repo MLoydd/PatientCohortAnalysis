@@ -2,10 +2,6 @@
  * Created by Mike on 13-Mar-17.
  */
 
-//import {dataset} from './data';
-//import {initialise, addNewProperty, addNewNode} from './querying';
-
-
 var dataset = [];
 
 d3.csv("./csv/data.csv", function (csv) {
@@ -59,15 +55,34 @@ function initApp() {
 function initControlElements() {
     var divQuery = d3.select("#controller").append("div").attr("id", "divQuery").attr("class", "query").style("opacity", 0);
     divQuery.append("input").attr("id", "inputPropertyName").style("width", "97.5%");
-    divQuery.append("input").attr("id", "inputNodeQuery").style("width", "97.5%");
+    divQuery.append("input").attr("id", "inputNodeQuery").style("width", "97.5%").on("keypress", performOnKeyPress);
     divQuery.append("button").text("Cancel").style("width", "50%").on("click", hideQueryFieldset);
-    divQuery.append("button").text("Create").style("width", "50%").on("click", createNewQueryNode)
-        .on("keypress", function () {
-            
-        });
+    divQuery.append("button").text("Create").style("width", "50%").on("click", createNewQueryNode);
 
     d3.select("#controller").append("div").attr("id", "divTriangle").attr("class", "hover-triangle").style("opacity", 0)
         .on("mouseover", displayTriangleElement).on("mouseout", hideTriangleElement).on("click", displayQueryFieldset);
+}
+
+
+// TODO : extend for other target elements
+function performOnKeyPress() {
+    if (event.defaultPrevented) {
+        return; // Do nothing if the event was already processed
+    }
+
+    switch (event.key) {
+        case "Enter":
+            createNewQueryNode();
+            break;
+        case "Escape":
+            hideQueryFieldset();
+            break;
+        default:
+            return; // Quit when this doesn't handle the key event.
+    }
+
+    // Cancel the default action to avoid it being handled twice
+    event.preventDefault();
 }
 
 function createNewQueryNode() {
@@ -92,7 +107,7 @@ function createNewQueryNode() {
     var op = findAnyOperatorInString(query);
     console.log("op: " + op);
     var hyphenSplit = query.split("-");
-    if(hyphenSplit.length > 1){
+    if (hyphenSplit.length > 1) {
         cohort = executeQuery2(key, "-", hyphenSplit[0].trim().toLowerCase(), hyphenSplit[1].trim().toLowerCase());
     } else if (op) {
         op = op[0];
@@ -108,11 +123,8 @@ function createNewQueryNode() {
         return;
     }
 
-    if (!isPropertyExisting(propertyName)) {
-        addNewProperty(propertyName);
-    }
-
-    addNewNode(propertyName, query, cohort);
+    addNewProperty(propertyName);
+    addNewNode(propertyName, query, cohort, selectedNode);
 
     hideQueryFieldset();
 }
@@ -123,27 +135,6 @@ function isInputValid(element) {
         return false;
     }
     return true;
-}
-
-function performComparisionOperation(operator, leftOperand, rightOperand, addOperand) {
-    switch (operator) {
-        case ">":
-            return leftOperand > rightOperand;
-        case "<":
-            return leftOperand < rightOperand;
-        case ">=":
-            return leftOperand >= rightOperand;
-        case "<=":
-            return leftOperand <= rightOperand;
-        case "=":
-            return leftOperand == rightOperand;
-        case "-":
-            return leftOperand >= rightOperand && leftOperand <= addOperand;
-        case null:
-            return leftOperand == rightOperand;
-        default:
-            console.log("Unknown operator: " + operator);
-    }
 }
 
 function executeQuery(property, operator, query) {
@@ -173,6 +164,11 @@ function updateSelectedCohort(cohort) {
     selectedCohort = cohort;
 }
 
+var selectedNode;
+function updateSelectedNode(node) {
+    selectedNode = node;
+}
+
 function findProperty(property) {
     var regex = new RegExp(property, "i");
 
@@ -184,18 +180,6 @@ function findProperty(property) {
     }
 
     return null;
-}
-
-var propertyList = [];
-function isPropertyExisting(propertyName) {
-    for (var i in propertyList) {
-        if (propertyList[i].toLowerCase() == propertyName.toLowerCase()) {
-            console.log("Property is existing: " + propertyName);
-            return true;
-        }
-    }
-
-    return false;
 }
 
 function displayQueryFieldset() {
@@ -225,6 +209,7 @@ function displayTriangleElement(cohort, displayPosX, displayPosY) {
     if (event.currentTarget.id != "divTriangle") {
         displayingPos = calculateTrianglePosition(displayPosX, displayPosY);
         updateSelectedCohort(cohort);
+        updateSelectedNode(event.target);
     }
 
     var divTriangle = d3.select("#divTriangle");
