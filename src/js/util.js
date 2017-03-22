@@ -39,7 +39,7 @@ function performComparisionOperation(operator, leftOperand, rightOperand, addOpe
             if (!addOperand) {
                 return leftOperand >= rightOperand;
             }
-            return leftOperand >= rightOperand && leftOperand <= addOperand;
+            return leftOperand >= rightOperand && leftOperand < addOperand;
         case null:
             return leftOperand == rightOperand;
         default:

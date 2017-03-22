@@ -36,7 +36,7 @@ d3.csv("./csv/data.csv", function (csv) {
         obj.functionH = parseInt(row.FunktionH);
         obj.functionV = parseInt(row.FunktionV);
         obj.functionTotal = parseInt(row.FunktionTotal);
-        obj.eqvas = parseInt(row.eqvas);
+        obj.eqvas = parseInt(row.EQVAS);
 
         dataset.push(obj);
     });
