@@ -171,7 +171,7 @@ function calculateNodeStartingPosition(container, parentNode, propertyName, node
         return drawingSpecs.nodeArea.x1;
     }
 
-    var childNodes = getAllChildNodesFromParent(parentNode.id, propertyName);
+    var childNodes = getAllChildNodesFromParent(parentNode.id);
     if (childNodes.length == 0) {
         return parentNode.x.baseVal.value;
     }
@@ -184,7 +184,7 @@ function calculateNodeStartingPosition(container, parentNode, propertyName, node
 }
 
 // TODO : figure out if the node fits in
-function isStartingPositionOccupied(container, xStartPos, xEndPos) {
+function findNextAvilablePosition(container, xStartPos, xEndPos) {
     var nodes = getAllElementOfTypeInContainer(container, "rect");
 
     var isStartPosOccupied = false;
