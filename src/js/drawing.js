@@ -5,8 +5,6 @@
 var margin = {top: 1, right: 1, bottom: 6, left: 1};
 //var height = 1500 - margin.top - margin.bottom;
 
-var scale = d3.scaleLinear();
-
 var drawingSpecs = {
     nodeHeight: 30,
     nodeHeightHalf: 15,
@@ -19,9 +17,32 @@ var drawingSpecs = {
 function initDrawing(svgWidth, svgHeight) {
     d3.select("#chart")
         .append("svg").attr("id", "svg").attr("width", svgWidth - margin.left - margin.right)
-        .attr("height", svgHeight - margin.top - margin.bottom)
+        .attr("height", svgHeight - margin.top - margin.bottom).attr("viewbox", "0 0 400 400")
         .append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 }
+
+function getSVGCoordinates() {
+    return document.getElementById("svg").getBoundingClientRect();
+}
+
+
+/**
+ * scaling
+ */
+
+var scale = d3.scaleLinear();
+function setCustomScale(domainArray, rangeArray) {
+    scale.domain(domainArray).range(rangeArray);
+}
+
+function calculateNodeWidth(quantity) {
+    return scale(quantity);
+}
+
+
+/**
+ * property creation
+ */
 
 var propertyList = [];
 function addNewProperty(propertyName) {
@@ -49,28 +70,33 @@ function isPropertyExisting(propertyName) {
     return false;
 }
 
+/**
+ * node creation
+ */
+
 function addNewNode(propertyName, query, dataset, parentNode) {
     var g = d3.select("#" + trimAllWhiteSpace(propertyName));
     var propertyLinePosY = g.select("line").property("y1").baseVal.value;
 
-    var width = calculateNodeWidth(dataset);
+    var width = calculateNodeWidth(dataset.length);
     console.log("nodeWidth: " + width);
     var xPos = calculateNodeStartingPosition(g, parentNode, propertyName, width);
     var yPos = propertyLinePosY - drawingSpecs.nodeHeightHalf;
 
     var nodeXCenter = xPos + width / 2;
     var nodeYCenter = propertyLinePosY;
-
     var id = composeNodeId(parentNode, propertyName, query);
-    var node = appendRect(g, id, xPos, yPos, width, drawingSpecs.nodeHeight);
-    node.on("mouseover", function () {
-        displayTriangleElement(dataset, nodeXCenter, yPos + drawingSpecs.nodeHeight)
-    })
-        .on("mouseout", hideTriangleElement);
-    appendText(g, query, nodeXCenter, nodeYCenter, "middle", "central");
-    appendPath(g, parentNode, xPos, yPos, width);
 
-    addToNodeList(id, propertyName, query, parentNode, dataset, xPos, yPos);
+    var overlaps = findOverlapWithAnotherNode(dataset, parentNode, propertyName);
+
+    var node = appendRect(g, id, xPos, yPos, width, drawingSpecs.nodeHeight);
+    node.on("mouseout", hideTriangleElement).on("mouseover", function () {
+        displayTriangleElement(dataset, nodeXCenter, yPos + drawingSpecs.nodeHeight)
+    });
+    appendText(g, query, nodeXCenter, nodeYCenter, "middle", "central");
+    appendPath(g, parentNode, xPos, yPos, width, overlaps);
+
+    addToNodeList(id, propertyName, query, parentNode, dataset, xPos, yPos, overlaps);
 }
 
 function composeNodeId(parentNode, propertyName, query) {
@@ -82,7 +108,7 @@ function composeNodeId(parentNode, propertyName, query) {
 }
 
 var nodeList = [];
-function addToNodeList(id, propertyName, query, parentNode, dataset, xPos, yPos) {
+function addToNodeList(id, propertyName, query, parentNode, dataset, xPos, yPos, overlapDataset) {
     if (!parentNode) {
         return;
     }
@@ -95,7 +121,33 @@ function addToNodeList(id, propertyName, query, parentNode, dataset, xPos, yPos)
     obj.dataset = dataset;
     obj.xPos = xPos;
     obj.yPos = yPos;
+    obj.overlapDataset = overlapDataset;
     nodeList.push(obj);
+}
+
+function findOverlapWithAnotherNode(dataset, parentNode, propertyName) {
+    if (!parentNode) {
+        return;
+    }
+
+    var childNodes = getAllChildNodesFromParent(parentNode.id, propertyName);
+
+    var map = new Map();
+    for (var i = 0; i < dataset.length; i++) {
+        var data = dataset[i];
+        for (var j = 0; j < childNodes.length; j++) {
+            var d = childNodes[j].dataset;
+            for (var k = 0; k < d.length; k++) {
+                var c = d[k];
+                if (!map.has(data.patientID) && data.patientID == c.patientID) {
+                    map.set(data.patientID, data);
+                }
+            }
+        }
+    }
+
+    console.log("findOverlapWithAnotherNode: " + map.size);
+    return map;
 }
 
 function getAllChildNodesFromParent(parentId, propertyName) {
@@ -113,14 +165,6 @@ function getAllChildNodesFromParent(parentId, propertyName) {
     return nodes;
 }
 
-function setCustomScale(domainArray, rangeArray) {
-    scale.domain(domainArray).range(rangeArray);
-}
-
-function calculateNodeWidth(dataset) {
-    return scale(dataset.length);
-}
-
 function calculateNodeStartingPosition(container, parentNode, propertyName, nodeWidth) {
 
     if (parentNode == null) {
@@ -133,7 +177,7 @@ function calculateNodeStartingPosition(container, parentNode, propertyName, node
     }
 
     var lastChildNode = childNodes[childNodes.length - 1];
-    return lastChildNode.xPos + calculateNodeWidth(lastChildNode.dataset);
+    return lastChildNode.xPos + calculateNodeWidth(lastChildNode.dataset.length);
 
     //var xStartPos = lastChildNode.xPos + calculateNodeWidth(lastChildNode.dataset);
     //isStartingPositionOccupied(container, xStartPos);
@@ -159,9 +203,10 @@ function isStartingPositionOccupied(container, xStartPos, xEndPos) {
     }
 }
 
-function getSVGCoordinates() {
-    return document.getElementById("svg").getBoundingClientRect();
-}
+
+/**
+ * all append functions
+ */
 
 function appendText(container, text, xPos, yPos, textAnchor, alignmentBaseline) {
     return container.append("text").text(text).attr("x", xPos).attr("y", yPos)
@@ -177,7 +222,7 @@ function appendRect(container, id, xPos, yPos, width, height) {
         .attr("width", width).attr("height", height);
 }
 
-function appendPath(container, parentNode, nodeX, nodeY, nodeWidth) {
+function appendPath(container, parentNode, nodeX, nodeY, nodeWidth, overlaps) {
     if (!parentNode) {
         return;
     }
@@ -185,19 +230,43 @@ function appendPath(container, parentNode, nodeX, nodeY, nodeWidth) {
     var parentXPos = parentNode.x.baseVal.value;
     var childNodes = getAllChildNodesFromParent(parentNode.id, null);
     childNodes.forEach(function (obj) {
-        parentXPos += calculateNodeWidth(obj.dataset);
+        parentXPos += calculateNodeWidth(obj.dataset.length) - calculateNodeWidth(obj.overlapDataset.size);
     });
 
+    if (overlaps.size > 0) {
+        parentXPos -= calculateNodeWidth(overlaps.size);
+    }
+
     var parentYPos = parentNode.y.baseVal.value + drawingSpecs.nodeHeight;
-    var d = composePathD(parentXPos, parentYPos, nodeX, nodeY, nodeWidth);
+    var d = composeStraightPathD(parentXPos, parentYPos, nodeX, nodeY, nodeWidth);
 
     return container.append("path").attr("d", d);
 }
 
-function composePathD(parentXPos, parentYPos, nodeXPos, nodeYPos, nodeWidth) {
+function composeStraightPathD(parentXPos, parentYPos, nodeXPos, nodeYPos, nodeWidth) {
+    var parentXPos2 = parentXPos + nodeWidth;
+    var nodeXPos2 = nodeXPos + nodeWidth;
     return "M" + parentXPos + "," + parentYPos
-        + "h" + nodeWidth
-        + "V" + nodeYPos
+        + "H" + parentXPos2
+        + "L" + nodeXPos2 + "," + nodeYPos
         + "H" + nodeXPos
         + "Z";
 }
+
+/*
+ function composeStraightPathD(parentXPos, parentYPos, nodeXPos, nodeYPos, nodeWidth) {
+ var curvature = .6;
+ var xi = d3.interpolateNumber(parentYPos, nodeYPos);
+ var parentXPos2 = parentXPos + nodeWidth;
+ var nodeXPos2 = nodeXPos + nodeWidth;
+ var y0 = xi(curvature);
+ var y1 = xi(1 - curvature);
+ var x0 = parentXPos2 + nodeWidth / 2;
+ var x1 = nodeXPos2 + nodeWidth / 2;
+ return "M" + parentXPos + "," + parentYPos
+ + "H" + parentXPos2
+ + "C" + x0 + "," + y0 + " " + x1 + "," + y1 + " " + nodeXPos2 + "," + nodeYPos
+ + "H" + nodeXPos
+ + "C" + (x1 + nodeWidth) + "," + y1 + " " + (x0 + nodeWidth) + "," + y0 + " " + parentXPos + "," + parentYPos;
+ }
+ */

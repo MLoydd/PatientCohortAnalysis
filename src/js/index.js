@@ -46,7 +46,7 @@ d3.csv("./csv/data.csv", function (csv) {
 function initApp() {
     console.log("index: " + dataset.length);
     initControlElements();
-    initDrawing(screen.width, screen.height);
+    initDrawing(2500, 1000);
     setCustomScale([0, dataset.length], [0, 1000]);
     addNewProperty("All Patients");
     addNewNode("All Patients", "All Patients", dataset);
@@ -54,10 +54,10 @@ function initApp() {
 
 function initControlElements() {
     var divQuery = d3.select("#controller").append("div").attr("id", "divQuery").attr("class", "query").style("opacity", 0);
-    divQuery.append("input").attr("id", "inputPropertyName").style("width", "97.5%");
-    divQuery.append("input").attr("id", "inputNodeQuery").style("width", "97.5%").on("keypress", performOnKeyPress);
-    divQuery.append("button").text("Cancel").style("width", "50%").on("click", hideQueryFieldset);
-    divQuery.append("button").text("Create").style("width", "50%").on("click", createNewQueryNode);
+    divQuery.append("input").attr("id", "inputPropertyName");
+    divQuery.append("input").attr("id", "inputNodeQuery").on("keypress", performOnKeyPress);
+    //divQuery.append("button").text("Cancel").style("width", "50%").on("click", hideQueryFieldset);
+    divQuery.append("button").text("Create").on("click", createNewQueryNode);
 
     d3.select("#controller").append("div").attr("id", "divTriangle").attr("class", "hover-triangle").style("opacity", 0)
         .on("mouseover", displayTriangleElement).on("mouseout", hideTriangleElement).on("click", displayQueryFieldset);
@@ -156,7 +156,7 @@ function executeQuery2(property, operator, query, addQuery) {
         }
     });
 
-    console.log(cohort.length);
+    console.log("executed query 2 : " + cohort.length);
     return cohort;
 }
 

@@ -1,9 +1,18 @@
 #chart {
-    height: 1500px;
-    display: flex;
-    justify-content: center;
+    /*height: auto;*/
+    /*display: flex;*/
+    /*justify-content: center;*/
 
-    margin: 1px 1px 6px 1px ;
+    /*margin: 1px 1px 6px 1px;*/
+
+    overflow-x: scroll;
+    /*width: auto;*/
+    /*white-space: nowrap;*/
+}
+
+#divQuery {
+    display: flex;
+    flex-direction: column;
 }
 
 .node line {
