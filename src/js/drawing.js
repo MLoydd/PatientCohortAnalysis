@@ -2,10 +2,10 @@
  * Created by Mike on 13-Mar-17.
  */
 
-var margin = {top: 1, right: 1, bottom: 6, left: 1};
-//var height = 1500 - margin.top - margin.bottom;
+let margin = {top: 1, right: 1, bottom: 6, left: 1};
+//let height = 1500 - margin.top - margin.bottom;
 
-var drawingSpecs = {
+let drawingSpecs = {
     nodeHeight: 30,
     nodeHeightHalf: 15,
     propertyNameWidth: 150,
@@ -30,7 +30,7 @@ function getSVGCoordinates() {
  * scaling
  */
 
-var scale = d3.scaleLinear();
+let scale = d3.scaleLinear();
 function setCustomScale(domainArray, rangeArray) {
     scale.domain(domainArray).range(rangeArray);
 }
@@ -44,24 +44,28 @@ function calculateNodeWidth(quantity) {
  * property creation
  */
 
-var propertyList = [];
+let propertyArray = [];
 function addNewProperty(propertyName) {
     if (isPropertyExisting(propertyName)) {
         return;
     }
 
-    propertyList.push(propertyName);
+    propertyArray.push(propertyName);
 
-    var y = drawingSpecs.nodeHeightHalf + (propertyList.length - 1) * drawingSpecs.propertyDistance;  //TODO refactor
+    let y = calculatePropertyLinePositionY(propertyName);
 
-    var g = d3.select("#svg").append("g").attr("class", "node").attr("id", trimAllWhiteSpace(propertyName));
-    appendText(g, propertyName, drawingSpecs.propertyNameWidth, y, "end", "central");
+    let g = d3.select("#svg").append("g").attr("class", "node").attr("id", trimAllWhiteSpace(propertyName));
+    drawText(g, propertyName, drawingSpecs.propertyNameWidth, y, "end", "central");
     appendLine(g, drawingSpecs.propertyLine.x1, y, drawingSpecs.propertyLine.x2, y);
 }
 
+function calculatePropertyLinePositionY(propertyName) {
+    return drawingSpecs.nodeHeightHalf + (propertyArray.length - 1) * drawingSpecs.propertyDistance;
+}
+
 function isPropertyExisting(propertyName) {
-    for (var i in propertyList) {
-        if (propertyList[i].toLowerCase() == propertyName.toLowerCase()) {
+    for (let i in propertyArray) {
+        if (propertyArray[i].toLowerCase() == propertyName.toLowerCase()) {
             console.log("Property is existing: " + propertyName);
             return true;
         }
@@ -70,128 +74,136 @@ function isPropertyExisting(propertyName) {
     return false;
 }
 
+function hasPropertyCohortNodes(property) {
+    for(let [key, cohort] of cohortNodeMap) {
+        if(cohort.property == property) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function removeProperty(property) {
+    propertyArray = propertyArray.filter(function (obj) {
+        return obj != property;
+    })
+}
+
 /**
  * node creation
  */
 
-function addNewNode(propertyName, query, dataset, parentNode) {
-    var g = d3.select("#" + trimAllWhiteSpace(propertyName));
-    var propertyLinePosY = g.select("line").property("y1").baseVal.value;
+function addNewCohortNode(propertyName, query, dataset, parentCohortNodeId, overlapDataMap) {
+    let g = d3.select("#" + trimAllWhiteSpace(propertyName));
+    let propertyLinePosY = g.select("line").property("y1").baseVal.value;
 
-    var width = calculateNodeWidth(dataset.length);
+    let parentCohortNode = cohortNodeMap.get(parentCohortNodeId);
+
+    let width = calculateNodeWidth(dataset.length);
     console.log("nodeWidth: " + width);
-    var xPos = calculateNodeStartingPosition(g, parentNode, propertyName, width);
-    var yPos = propertyLinePosY - drawingSpecs.nodeHeightHalf;
+    let xPos = calculateNodeStartingPosition(g, parentCohortNode, propertyName, width);
+    let yPos = propertyLinePosY - drawingSpecs.nodeHeightHalf;
 
-    var nodeXCenter = xPos + width / 2;
-    var nodeYCenter = propertyLinePosY;
-    var id = composeNodeId(parentNode, propertyName, query);
+    let nodeXCenter = xPos + width / 2;
+    let nodeYCenter = propertyLinePosY;
+    let id = composeNodeId(parentCohortNode, propertyName, query);
 
-    var overlaps = findOverlapWithAnotherNode(dataset, parentNode, propertyName);
+    let node = drawRect(g, id, xPos, yPos, width, drawingSpecs.nodeHeight);
+    drawText(g, query, nodeXCenter, nodeYCenter, "middle", "central");
+    drawPath(g, parentCohortNode, xPos, yPos, width, overlapDataMap);
 
-    var node = appendRect(g, id, xPos, yPos, width, drawingSpecs.nodeHeight);
-    node.on("mouseout", hideTriangleElement).on("mouseover", function () {
-        displayTriangleElement(dataset, nodeXCenter, yPos + drawingSpecs.nodeHeight)
+    let cohortNode = addToCohortNodeMap(id, propertyName, query, parentCohortNode, dataset, xPos, yPos, width, overlapDataMap);
+    node.on("mouseout", hideCohortNodeElements).on("mouseover", function () {
+        displayCohortNodeElements(cohortNode);
     });
-    appendText(g, query, nodeXCenter, nodeYCenter, "middle", "central");
-    appendPath(g, parentNode, xPos, yPos, width, overlaps);
-
-    addToNodeList(id, propertyName, query, parentNode, dataset, xPos, yPos, overlaps);
 }
 
-function composeNodeId(parentNode, propertyName, query) {
-    if (!parentNode) {
+function composeNodeId(parentCohortNode, propertyName, query) {
+    if (!parentCohortNode) {
         return trimAllWhiteSpace(propertyName + "-" + query);
     }
 
-    return trimAllWhiteSpace(propertyName + "-" + query + "_" + parentNode.id);
+    return trimAllWhiteSpace(propertyName + "-" + query + "_" + parentCohortNode);
 }
 
-var nodeList = [];
-function addToNodeList(id, propertyName, query, parentNode, dataset, xPos, yPos, overlapDataset) {
-    if (!parentNode) {
-        return;
+let cohortNodeMap = new Map();
+function addToCohortNodeMap(cohortNodeId, property, query, parentCohortNode, dataset, xPos, yPos, width, overlapDataMap) {
+    if (cohortNodeMap.has(cohortNodeId)) {
+        alert("This cohort already exists!");
+        return cohortNodeMap.get(cohortNodeId);
     }
 
-    var obj = {};
-    obj.id = id;
-    obj.propertyName = propertyName;
-    obj.query = query;
-    obj.parentId = parentNode.id;
-    obj.dataset = dataset;
-    obj.xPos = xPos;
-    obj.yPos = yPos;
-    obj.overlapDataset = overlapDataset;
-    nodeList.push(obj);
+    let cohort = {};
+    cohort.id = cohortNodeId;
+    cohort.property = property;
+    cohort.query = query;
+    cohort.parentId = parentCohortNode ? parentCohortNode.id : null;
+    cohort.dataset = dataset;
+    cohort.xPos = xPos;
+    cohort.yPos = yPos;
+    cohort.width = width;
+    cohort.overlapDataMap = overlapDataMap;
+    cohortNodeMap.set(cohortNodeId, cohort);
+
+    return cohort;
 }
 
-function findOverlapWithAnotherNode(dataset, parentNode, propertyName) {
-    if (!parentNode) {
-        return;
+function removeCohortNode(cohortId, property) {
+
+    cohortNodeMap.delete(cohortId);
+    if(!hasPropertyCohortNodes(property)) {
+        removeProperty(property);
     }
-
-    var childNodes = getAllChildNodesFromParent(parentNode.id, propertyName);
-
-    var map = new Map();
-    for (var i = 0; i < dataset.length; i++) {
-        var data = dataset[i];
-        for (var j = 0; j < childNodes.length; j++) {
-            var d = childNodes[j].dataset;
-            for (var k = 0; k < d.length; k++) {
-                var c = d[k];
-                if (!map.has(data.patientID) && data.patientID == c.patientID) {
-                    map.set(data.patientID, data);
-                }
-            }
-        }
-    }
-
-    console.log("findOverlapWithAnotherNode: " + map.size);
-    return map;
+    redraw();
 }
 
-function getAllChildNodesFromParent(parentId, propertyName) {
-    var nodes = nodeList.filter(function (obj) {
-        if (!propertyName && obj.parentId == parentId) {
-            return obj;
+function getAllChildNodes(parentId, property) {
+    let nodes = [];
+    cohortNodeMap.forEach(function (obj) {
+        if (!property && obj.parentId == parentId) {
+            nodes.push(obj);
         }
 
-        if (obj.parentId == parentId && obj.propertyName == propertyName) {
-            return obj;
+        if (obj.parentId == parentId && obj.property == property) {
+            nodes.push(obj);
         }
     });
 
-    console.log("getAllChildNodesFromParent: " + nodes.length);
+    console.log("getAllChildNodes: " + nodes.length);
     return nodes;
 }
 
-function calculateNodeStartingPosition(container, parentNode, propertyName, nodeWidth) {
+function hasChildCohortNodes(nodeId) {
+    return getAllChildNodes(nodeId).length != 0;
+}
 
-    if (parentNode == null) {
+function calculateNodeStartingPosition(container, parentCohortNode, propertyName, nodeWidth) {
+
+    if (propertyName == "All Patients") {
         return drawingSpecs.nodeArea.x1;
     }
 
-    var childNodes = getAllChildNodesFromParent(parentNode.id);
+    let childNodes = getAllChildNodes(parentCohortNode.id);
     if (childNodes.length == 0) {
-        return parentNode.x.baseVal.value;
+        return parentCohortNode.xPos;
     }
 
-    var lastChildNode = childNodes[childNodes.length - 1];
-    return lastChildNode.xPos + calculateNodeWidth(lastChildNode.dataset.length);
+    let lastChildNode = childNodes[childNodes.length - 1];
+    return lastChildNode.xPos + lastChildNode.width;
 
-    //var xStartPos = lastChildNode.xPos + calculateNodeWidth(lastChildNode.dataset);
+    //let xStartPos = lastChildNode.xPos + calculateNodeWidth(lastChildNode.dataset);
     //isStartingPositionOccupied(container, xStartPos);
 }
 
 // TODO : figure out if the node fits in
 function findNextAvilablePosition(container, xStartPos, xEndPos) {
-    var nodes = getAllElementOfTypeInContainer(container, "rect");
+    let nodes = getAllElementOfTypeInContainer(container, "rect");
 
-    var isStartPosOccupied = false;
-    var isEndPosOccupied = false;
-    for (var node in nodes) {
-        var nodeXStartPos = node.x.baseVal.value;
-        var nodeXEndPos = nodeXStartPos + node.width.baseVal.value;
+    let isStartPosOccupied = false;
+    let isEndPosOccupied = false;
+    for (let node in nodes) {
+        let nodeXStartPos = node.x.baseVal.value;
+        let nodeXEndPos = nodeXStartPos + node.width.baseVal.value;
 
         if (isStartPosOccupied) {
             isEndPosOccupied = xEndPos < nodeXStartPos;
@@ -203,12 +215,31 @@ function findNextAvilablePosition(container, xStartPos, xEndPos) {
     }
 }
 
+// TODO
+function redraw() {
+    let propertListCopy = propertyArray;
+    let cohortNodeMapCopy = new Map(cohortNodeMap);
+
+    propertyArray = [];
+    cohortNodeMap.clear();
+
+    d3.selectAll("svg > *").remove();
+    propertListCopy.forEach(function (property) {
+        addNewProperty(property);
+        cohortNodeMapCopy.forEach(function (obj) {
+            if(obj.property == property) {
+                addNewCohortNode(property, obj.query, obj.dataset, obj.parentId, obj.overlapDataMap);
+            }
+        })
+    })
+}
+
 
 /**
  * all append functions
  */
 
-function appendText(container, text, xPos, yPos, textAnchor, alignmentBaseline) {
+function drawText(container, text, xPos, yPos, textAnchor, alignmentBaseline) {
     return container.append("text").text(text).attr("x", xPos).attr("y", yPos)
         .attr("text-anchor", textAnchor).attr("alignment-baseline", alignmentBaseline);
 }
@@ -217,35 +248,35 @@ function appendLine(container, xPos1, yPos1, xPos2, yPos2) {
     return container.append("line").attr("x1", xPos1).attr("y1", yPos1).attr("x2", xPos2).attr("y2", yPos2);
 }
 
-function appendRect(container, id, xPos, yPos, width, height) {
+function drawRect(container, id, xPos, yPos, width, height) {
     return container.append("rect").attr("id", id).attr("x", xPos).attr("y", yPos)
         .attr("width", width).attr("height", height);
 }
 
-function appendPath(container, parentNode, nodeX, nodeY, nodeWidth, overlaps) {
-    if (!parentNode) {
+function drawPath(container, parentCohortNode, nodeX, nodeY, nodeWidth, overlapDataMap) {
+    if (!parentCohortNode) {
         return;
     }
 
-    var parentXPos = parentNode.x.baseVal.value;
-    var childNodes = getAllChildNodesFromParent(parentNode.id, null);
+    let parentXPos = parentCohortNode.xPos;
+    let childNodes = getAllChildNodes(parentCohortNode.id);
     childNodes.forEach(function (obj) {
-        parentXPos += calculateNodeWidth(obj.dataset.length) - calculateNodeWidth(obj.overlapDataset.size);
+        parentXPos += obj.width - calculateNodeWidth(obj.overlapDataMap.size);
     });
 
-    if (overlaps.size > 0) {
-        parentXPos -= calculateNodeWidth(overlaps.size);
+    if (overlapDataMap.size > 0) {
+        parentXPos -= calculateNodeWidth(overlapDataMap.size);
     }
 
-    var parentYPos = parentNode.y.baseVal.value + drawingSpecs.nodeHeight;
-    var d = composeStraightPathD(parentXPos, parentYPos, nodeX, nodeY, nodeWidth);
+    let parentYPos = parentCohortNode.yPos + drawingSpecs.nodeHeight;
+    let d = composeStraightPathD(parentXPos, parentYPos, nodeX, nodeY, nodeWidth);
 
     return container.append("path").attr("d", d);
 }
 
 function composeStraightPathD(parentXPos, parentYPos, nodeXPos, nodeYPos, nodeWidth) {
-    var parentXPos2 = parentXPos + nodeWidth;
-    var nodeXPos2 = nodeXPos + nodeWidth;
+    let parentXPos2 = parentXPos + nodeWidth;
+    let nodeXPos2 = nodeXPos + nodeWidth;
     return "M" + parentXPos + "," + parentYPos
         + "H" + parentXPos2
         + "L" + nodeXPos2 + "," + nodeYPos
@@ -255,14 +286,14 @@ function composeStraightPathD(parentXPos, parentYPos, nodeXPos, nodeYPos, nodeWi
 
 /*
  function composeStraightPathD(parentXPos, parentYPos, nodeXPos, nodeYPos, nodeWidth) {
- var curvature = .6;
- var xi = d3.interpolateNumber(parentYPos, nodeYPos);
- var parentXPos2 = parentXPos + nodeWidth;
- var nodeXPos2 = nodeXPos + nodeWidth;
- var y0 = xi(curvature);
- var y1 = xi(1 - curvature);
- var x0 = parentXPos2 + nodeWidth / 2;
- var x1 = nodeXPos2 + nodeWidth / 2;
+ let curvature = .6;
+ let xi = d3.interpolateNumber(parentYPos, nodeYPos);
+ let parentXPos2 = parentXPos + nodeWidth;
+ let nodeXPos2 = nodeXPos + nodeWidth;
+ let y0 = xi(curvature);
+ let y1 = xi(1 - curvature);
+ let x0 = parentXPos2 + nodeWidth / 2;
+ let x1 = nodeXPos2 + nodeWidth / 2;
  return "M" + parentXPos + "," + parentYPos
  + "H" + parentXPos2
  + "C" + x0 + "," + y0 + " " + x1 + "," + y1 + " " + nodeXPos2 + "," + nodeYPos

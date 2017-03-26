@@ -2,11 +2,11 @@
  * Created by Mike on 13-Mar-17.
  */
 
-var dataset = [];
+let inputDataset = [];
 
 d3.csv("./csv/data.csv", function (csv) {
     csv.forEach(function (row) {
-        var obj = {};
+        let obj = {};
         obj.key = parseInt(row.JournalTableForm_Key);
         obj.unit = row.Enhet.toLowerCase();
         obj.unitID = parseInt(row.Enhet_ID);
@@ -38,32 +38,34 @@ d3.csv("./csv/data.csv", function (csv) {
         obj.functionTotal = parseInt(row.FunktionTotal);
         obj.eqvas = parseInt(row.EQVAS);
 
-        dataset.push(obj);
+        inputDataset.push(obj);
     });
     initApp();
 });
 
 function initApp() {
-    console.log("index: " + dataset.length);
+    console.log("index: " + inputDataset.length);
     initControlElements();
     initDrawing(2500, 1000);
-    setCustomScale([0, dataset.length], [0, 1000]);
+    setCustomScale([0, inputDataset.length], [0, 1000]);
     addNewProperty("All Patients");
-    addNewNode("All Patients", "All Patients", dataset);
+    addNewCohortNode("All Patients", "All Patients", inputDataset);
 }
 
 function initControlElements() {
-    var divQuery = d3.select("#controller").append("div").attr("id", "divQuery").attr("class", "query").style("opacity", 0);
-    divQuery.append("input").attr("id", "inputPropertyName");
-    divQuery.append("input").attr("id", "inputNodeQuery").on("keypress", performOnKeyPress);
-    //divQuery.append("button").text("Cancel").style("width", "50%").on("click", hideQueryFieldset);
+    let ctrl = d3.select("#controller");
+    let divQuery = ctrl.append("div").attr("id", "divQuery").attr("class", "query").style("opacity", 0);
+    divQuery.append("input").attr("id", "inputPropertyName").on("keydown", performOnKeyPress);
+    divQuery.append("input").attr("id", "inputNodeQuery").on("keydown", performOnKeyPress);
     divQuery.append("button").text("Create").on("click", createNewQueryNode);
 
-    d3.select("#controller").append("div").attr("id", "divTriangle").attr("class", "hover-triangle").style("opacity", 0)
-        .on("mouseover", displayTriangleElement).on("mouseout", hideTriangleElement).on("click", displayQueryFieldset);
+    ctrl.append("div").attr("id", "divTriangle").attr("class", "hover-triangle").style("opacity", 0)
+        .on("mouseover", displayCohortNodeElements).on("mouseout", hideCohortNodeElements).on("click", displayQueryFieldset);
+
+    ctrl.append("div").attr("id", "closingIcon").attr("class", "close").style("opacity", 0)
+        .on("mouseover", onClosingIconMouseOverHandler).on("mouseout", onClosingIconMouseOutHandler).on("click", removeCohort);
 }
 
-// TODO : extend for other target elements
 function performOnKeyPress() {
     if (event.defaultPrevented) {
         return; // Do nothing if the event was already processed
@@ -71,7 +73,12 @@ function performOnKeyPress() {
 
     switch (event.key) {
         case "Enter":
-            createNewQueryNode();
+            if (event.currentTarget.id == "inputPropertyName") {
+                document.getElementById("inputNodeQuery").focus();
+            }
+            if (event.currentTarget.id == "inputNodeQuery") {
+                createNewQueryNode();
+            }
             break;
         case "Escape":
             hideQueryFieldset();
@@ -84,49 +91,60 @@ function performOnKeyPress() {
     event.preventDefault();
 }
 
-var selectedNode;
+let selectedCohortNode;
 function createNewQueryNode() {
-    var inputPropertyName = d3.select("#inputPropertyName");
-    var inputNodeQuery = d3.select("#inputNodeQuery");
+    let inputPropertyName = d3.select("#inputPropertyName");
+    let inputNodeQuery = d3.select("#inputNodeQuery");
     if (!isInputValid(inputPropertyName) || !isInputValid(inputNodeQuery)) {
         return;
     }
 
-    var propertyName = inputPropertyName.property("value");
-    var query = inputNodeQuery.property("value").trim();
+    let propertyName = inputPropertyName.property("value");
+    let query = inputNodeQuery.property("value").trim();
 
-    var key = findProperty(propertyName);
-    if (key == null) {
+    let property = findProperty(propertyName);
+    if (property == null) {
         alert("Property is NOT Existing");
         highlightElementBorder(inputPropertyName);
         return;
     }
 
-    var cohort;
-
-    var op = findAnyOperatorInString(query);
-    console.log("op: " + op);
-    var hyphenSplit = query.split("-");
-    if (hyphenSplit.length > 1) {
-        cohort = executeQuery2(key, "-", hyphenSplit[0].trim().toLowerCase(), hyphenSplit[1].trim().toLowerCase());
-    } else if (op) {
-        op = op[0];
-        var val = query.replace(op, "").trim();
-        cohort = executeQuery(key, op, val.toLowerCase());
-    } else {
-        cohort = executeQuery(key, null, query.toLowerCase());
-    }
-
+    let cohort = createCohortBasedOnQuery(query, property);
     if (cohort.length == 0) {
         alert("NO Patient found with this condition");
         highlightElementBorder(inputNodeQuery);
         return;
     }
 
-    addNewProperty(propertyName);
-    addNewNode(propertyName, query, cohort, selectedNode);
+    let overlapDataMap = findOverlapWithSiblingNodes(cohort, selectedCohortNode.id /*, property*/);
+
+    addNewProperty(property);
+    addNewCohortNode(property, query, cohort, selectedCohortNode.id, overlapDataMap);
 
     hideQueryFieldset();
+}
+
+function removeCohort() {
+    console.log("remove cohort has been clicked");
+
+    hideCohortNodeElements();
+    hideCohortNodeElements();
+
+    let childCohorts = getAllChildNodes(selectedCohortNode.id);
+    if (childCohorts.length > 0) {
+        let reply = window.confirm("The deleting cohort has depending sub-cohorts. " +
+            "All sub-cohorts will also be deleted!\n" +
+            "Do you still want to delete the cohort with all the depending sub-cohorts?");
+        if (!reply) {
+            return;
+        }
+
+        for (let cohort of childCohorts) {
+            removeCohortNode(cohort.id, cohort.property);
+        }
+    }
+
+    removeCohortNode(selectedCohortNode.id, selectedCohortNode.property);
 }
 
 function isInputValid(element) {
@@ -137,9 +155,26 @@ function isInputValid(element) {
     return true;
 }
 
-var selectedCohort;
+function createCohortBasedOnQuery(query, key) {
+
+    let hyphenSplit = query.split("-");
+    if (hyphenSplit.length > 1) {
+        return executeQuery2(key, "-", hyphenSplit[0].trim().toLowerCase(), hyphenSplit[1].trim().toLowerCase());
+    }
+
+    let op = findAnyOperatorInString(query);
+    console.log("op: " + op);
+    if (op) {
+        op = op[0];
+        let val = query.replace(op, "").trim();
+        return executeQuery(key, op, val.toLowerCase());
+    }
+
+    return executeQuery(key, null, query.toLowerCase());
+}
+
 function executeQuery(property, operator, query) {
-    var cohort = selectedCohort.filter(function (currentValue) {
+    let cohort = selectedCohortNode.dataset.filter(function (currentValue) {
         if (performComparisionOperation(operator, currentValue[property], query)) {
             return currentValue;
         }
@@ -150,7 +185,7 @@ function executeQuery(property, operator, query) {
 }
 
 function executeQuery2(property, operator, query, addQuery) {
-    var cohort = selectedCohort.filter(function (currentValue) {
+    let cohort = selectedCohortNode.dataset.filter(function (currentValue) {
         if (performComparisionOperation(operator, currentValue[property], query, addQuery)) {
             return currentValue;
         }
@@ -160,11 +195,11 @@ function executeQuery2(property, operator, query, addQuery) {
     return cohort;
 }
 
-function findProperty(property) {
-    var regex = new RegExp(property, "i");
+function findProperty(string) {
+    let regex = new RegExp(string, "i");
 
-    var obj = dataset[0];
-    for (var key in obj) {
+    let obj = inputDataset[0];
+    for (let key in obj) {
         if (obj.hasOwnProperty(key) && regex.exec(key)) {
             return key;
         }
@@ -173,47 +208,138 @@ function findProperty(property) {
     return null;
 }
 
-function displayQueryFieldset() {
-    hideTriangleElement();
-
-    var divQuery = d3.select("#divQuery");
-    document.getElementById("inputPropertyName").focus();
-    displayElementOnMouseOverEvent(divQuery, 200, displayingPos);
-}
-
-function hideQueryFieldset() {
-    transactionOnMouseOutEvent(d3.select("#divQuery"), 200);
-    d3.select("#inputPropertyName").property("value", "").style("border-color", "#ffffff");
-    d3.select("#inputNodeQuery").property("value", "").style("border-color", "#ffffff");
-    d3.select("#divTriangle").style("left", 0).style("top", 0);
-    d3.select("#divQuery").style("left", 0).style("top", 0);
-}
-
-var displayingPos;
-function displayTriangleElement(cohort, displayPosX, displayPosY) {
-
-    if (d3.select("#divQuery").style("opacity") != 0) {
+function findOverlapWithSiblingNodes(dataset, parentId, property) {
+    if (!parentId) {
         return;
     }
 
-    if (event.currentTarget.id != "divTriangle") {
-        displayingPos = calculateTrianglePosition(displayPosX, displayPosY);
-        selectedCohort = cohort;
-        selectedNode = event.target;
+    let childNodes = getAllChildNodes(parentId, property);
+
+    let map = new Map();
+    for (let i = 0; i < dataset.length; i++) {
+        let data = dataset[i];
+        for (let j = 0; j < childNodes.length; j++) {
+            let d = childNodes[j].dataset;
+            for (let k = 0; k < d.length; k++) {
+                let c = d[k];
+                if (!map.has(data.patientID) && data.patientID == c.patientID) {
+                    map.set(data.patientID, data);
+                }
+            }
+        }
     }
 
-    var divTriangle = d3.select("#divTriangle");
-    displayElementOnMouseOverEvent(divTriangle, 200, displayingPos);
+    console.log("findOverlapWithSiblingNodes: " + map.size);
+    return map;
 }
 
-function hideTriangleElement() {
-    var divTriangle = d3.select("#divTriangle");
-    transactionOnMouseOutEvent(divTriangle, 200);
+function findOverlapWithSiblingNodes2(dataset, parentNode, property) {
+    if (!parentNode) {
+        return;
+    }
+
+    let childNodes = getAllChildNodes(parentNode.id, property);
+    let overlapMap = new Map();
+    for (let i = 0; i < dataset.length; i++) {
+        let data = dataset[i];
+        for (let j = 0; j < childNodes.length; j++) {
+            let d = childNodes[j].dataset;
+            let map = new Map();
+            for (let k = 0; k < d.length; k++) {
+                let c = d[k];
+                if (!map.has(data.patientID) && data.patientID == c.patientID) {
+                    map.set(data.patientID, data);
+                    overlapMap.set(childNodes[j].property, data);
+                }
+            }
+        }
+    }
+
+    console.log("findOverlapWithSiblingNodes: " + overlapMap.size);
+    return overlapMap;
 }
 
-function calculateTrianglePosition(displayPosX, displayPosY) {
-    var coordinates = getSVGCoordinates();
-    var left = coordinates.left + displayPosX - 60;
-    var top = coordinates.top + displayPosY;
+function displayQueryFieldset() {
+    hideCohortNodeElements();
+
+    document.getElementById("inputPropertyName").focus();
+    displayElement("divQuery", selectedCohortNode);
+}
+
+function hideQueryFieldset() {
+    hideElementOnMouseOutHandler("divQuery");
+    resetControllerElements();
+}
+
+function resetControllerElements() {
+    d3.select("#inputPropertyName").property("value", "").style("border-color", "#ffffff");
+    d3.select("#inputNodeQuery").property("value", "").style("border-color", "#ffffff");
+    d3.select("#divTriangle").style("left", 0).style("top", 0);
+    d3.select("#closingIcon").style("left", 0).style("top", 0);
+    d3.select("#divQuery").style("left", 0).style("top", 0);
+}
+
+function displayCohortNodeElements(cohort) {
+
+    if (document.getElementById("divQuery").style.opacity != 0) {
+        return;
+    }
+
+    if (cohort) {
+        selectedCohortNode = cohort;
+    }
+
+    displayElement("divTriangle", selectedCohortNode);
+    displayClosingIcon(selectedCohortNode);
+}
+
+function displayElement(elementId, cohortNode) {
+    let xPos = cohortNode.xPos + cohortNode.width / 2;
+    let yPos = cohortNode.yPos + drawingSpecs.nodeHeight;
+    let absolutePositionCoordinate = calculateNodeMiddlePositionAbsolute(xPos, yPos);
+    displayElementOnMouseOverHandler(elementId, absolutePositionCoordinate);
+}
+
+function displayClosingIcon(cohortNode) {
+    if (!cohortNode.parentId) {
+        return;
+    }
+
+    let absolutePositionCoordinate = calculateCloseIconPosition(cohortNode.xPos, cohortNode.yPos, cohortNode.width);
+    displayElementOnMouseOverHandler("closingIcon", absolutePositionCoordinate, 0.3);
+}
+
+function onClosingIconMouseOverHandler() {
+    let nodes = getAllChildNodes(selectedCohortNode.id);
+    nodes.forEach(function (obj) {
+        document.getElementById(obj.id).style.fill = "#FF0000";
+    });
+
+    document.getElementById("closingIcon").style.opacity = 1;
+}
+
+function onClosingIconMouseOutHandler() {
+    let nodes = getAllChildNodes(selectedCohortNode.id);
+    nodes.forEach(function (obj) {
+        document.getElementById(obj.id).style.removeProperty("fill");
+    });
+}
+
+function hideCohortNodeElements() {
+    hideElementOnMouseOutHandler("closingIcon");
+    hideElementOnMouseOutHandler("divTriangle");
+}
+
+function calculateNodeMiddlePositionAbsolute(xPos, yPos) {
+    let coordinates = getSVGCoordinates();
+    let left = coordinates.left + xPos - 60;
+    let top = coordinates.top + yPos;
+    return [left, top];
+}
+
+function calculateCloseIconPosition(xPos, yPos, width) {
+    let coordinates = getSVGCoordinates();
+    let left = coordinates.left + xPos + width - 35;
+    let top = coordinates.top + yPos + 5;
     return [left, top];
 }

@@ -15,8 +15,8 @@ function highlightElementBorder(element) {
 }
 
 /*function findHyphenInString(string) {
-    var regex = new RegExp("^(?=.*-)[a-zA-Z0-9-]+$");
-}*/
+ var regex = new RegExp("^(?=.*-)[a-zA-Z0-9-]+$");
+ }*/
 
 function findAnyOperatorInString(query) {
     var regex = new RegExp("[<>]=?|!?=");
@@ -48,11 +48,11 @@ function performComparisionOperation(operator, leftOperand, rightOperand, addOpe
 }
 
 /*var operators = {
-    "<" : function (a, b) {return a < b;},
-    ">" : function (a, b) {return a > b;},
-    "<=" : function (a, b) {return a <= b;},
-    ">=" : function (a, b) {return a >= b;}
-};*/
+ "<" : function (a, b) {return a < b;},
+ ">" : function (a, b) {return a > b;},
+ "<=" : function (a, b) {return a <= b;},
+ ">=" : function (a, b) {return a >= b;}
+ };*/
 
 function getAllElementOfTypeInContainer(containerElement, typeName) {
     var r = containerElement.selectAll(typeName);
@@ -66,23 +66,24 @@ function getAllElementOfTypeInContainer(containerElement, typeName) {
 
 
 /*function displayElementOnMouseOverEventBasedOnMousePosition(element, transitionDuration) {
-    transactionOnMouseOverEvent(element, transitionDuration);
-    element.style("left", (event.pageX - 50) + "px").style("top", (event.pageY) + "px");
-}*/
+ transactionOnMouseOverEvent(element, transitionDuration);
+ element.style("left", (event.pageX - 50) + "px").style("top", (event.pageY) + "px");
+ }*/
 
-function displayElementOnMouseOverEvent(element, transitionDuration, displayingPos) {
-    transactionOnMouseOverEvent(element, transitionDuration);
-    element.style("left", displayingPos[0] + "px").style("top", displayingPos[1] + "px");
+function displayElementOnMouseOverHandler(elementId, displayingPos, opacity) {
+    var element = document.getElementById(elementId);
+    element.style.left = displayingPos[0] + "px";
+    element.style.top = displayingPos[1] + "px";
+
+    var o = 0.9;
+    if (opacity) {
+        o = opacity
+    }
+
+    element.style.opacity = o;
 }
 
-function transactionOnMouseOutEvent(element, transitionDuration) {
-    opacityHandler(element, transitionDuration, 0);
-}
-
-function transactionOnMouseOverEvent(element, transitionDuration) {
-    opacityHandler(element, transitionDuration, .9);
-}
-
-function opacityHandler(element, transitionDuration, opacity) {
-    element.transition().duration(transitionDuration).style("opacity", opacity);
+function hideElementOnMouseOutHandler(elementId) {
+    var element = document.getElementById(elementId);
+    element.style.opacity = 0;
 }

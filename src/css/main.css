@@ -26,6 +26,12 @@
     stroke: #000000;
 }
 
+.node-hover {
+    shape-rendering: crispEdges;
+    fill: #FF0000;
+    stroke: #000000;
+}
+
 .node path {
     shape-rendering: crispEdges;
     fill: #B0C4DE;
@@ -49,4 +55,35 @@ div .hover-triangle {
     width: 150px;
     position: absolute;
     z-index: 7;
+}
+
+/* closing icon */
+.close {
+    position: absolute;
+    right: 32px;
+    top: 32px;
+    width: 32px;
+    height: 32px;
+    opacity: 0.3;
+}
+
+.close:hover {
+    opacity: 1;
+}
+
+.close:before, .close:after {
+    position: absolute;
+    left: 15px;
+    content: ' ';
+    height: 20px;
+    width: 2px;
+    background-color: #FF0000;
+}
+
+.close:before {
+    transform: rotate(45deg);
+}
+
+.close:after {
+    transform: rotate(-45deg);
 }
