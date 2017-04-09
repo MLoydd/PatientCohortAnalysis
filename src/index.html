@@ -6,25 +6,40 @@
 
     <!-- Google Charts Library -->
     <link rel="stylesheet" href="css/main.css">
+
+    <!-- External Libraries -->
+    <script src="../lib/d3js/d3.js"></script>
 </head>
 <body>
-<h1>Data Querying</h1>
-<div id="controller"></div>
-<div id="chart"></div>
-<!--<div style="display: flex;">
-    <div id="chart"></div>
-    <div id="formNode" style="visibility: hidden; width: 200px;">
-        <input id="inputPropertyName" type="text">
-        <input id="inputQuery" type="text">
-        <button id="btnCancel">Cancel</button>
-        <button id="btnCreate">Create</button>
-    </div>
-</div>-->
 
-<!--<script src="../build/bundle.js"></script>-->
-<script src="../lib/d3js/d3.js"></script>
-<script src="./js/util.js"></script>
-<script src="js/drawing.js"></script>
+<div id="controller">
+    <div id="queryContainer" class="query-container">
+        <input id="inputProperty" onkeydown="queryInputFieldKeyDownHandler()" title="property" placeholder="property">
+        <input id="inputQuery" onkeydown="queryInputFieldKeyDownHandler()" title="query" placeholder="query">
+        <button id="btnFilter" onclick="applyFilterButtonClickedHandler()">Apply Filter</button>
+    </div>
+    <!--<div id="triangleIcon" class="triangle-hover" onclick="triangleIconOnClickHandler()"
+    onmouseout="triangleIconMouseOutHandler()" onmouseover="triangleIconMouseOverHandler()"></div>
+    <div id="closingIcon" class="closing-hover" onclick="closingIconOnClickHandler()"
+    onmouseout="closingIconMouseOutHandler()" onmouseover="closingIconMouseOverHandler()"></div>-->
+
+    <img id="triangleIcon" src="./img/triangle_icon.svg" class="triangle-hover" onclick="triangleIconOnClickHandler()"
+         onmouseout="triangleIconMouseOutHandler()" onmouseover="triangleIconMouseOverHandler()">
+    <img id="closingIcon" src="./img/closing_icon.svg" class="closing-hover" onclick="closingIconOnClickHandler()"
+         onmouseout="closingIconMouseOutHandler()" onmouseover="closingIconMouseOverHandler()">
+</div>
+
+<div id="chart">
+    <!-- <svg id="cohortSVG" width="1500" height="750"></svg> -->
+</div>
+
+<script src="./js/helper/linkedList.js"></script>
+<script src="./js/util/util.js"></script>
+<script src="./js/util/drawing.js"></script>
+<script src="./js/modal/cohort.js"></script>
+<script src="./js/modal/db.js"></script>
+<script src="./js/service/cohortService.js"></script>
 <script src="./js/index.js"></script>
+
 </body>
 </html>

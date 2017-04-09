@@ -1,13 +1,5 @@
 #chart {
-    /*height: auto;*/
-    /*display: flex;*/
-    /*justify-content: center;*/
 
-    /*margin: 1px 1px 6px 1px;*/
-
-    overflow-x: scroll;
-    /*width: auto;*/
-    /*white-space: nowrap;*/
 }
 
 #divQuery {
@@ -16,13 +8,13 @@
 }
 
 .node line {
-    stroke: #ff0000;
+    stroke: #808080;
     stroke-width: 3;
 }
 
 .node rect {
     shape-rendering: crispEdges;
-    fill: #B0C4DE;
+    fill: #ffffe0;
     stroke: #000000;
 }
 
@@ -34,56 +26,50 @@
 
 .node path {
     shape-rendering: crispEdges;
-    fill: #B0C4DE;
+    fill: #ffffe0;
     fill-opacity: .7;
     stroke: #000000;
     stroke-opacity: .2;
 }
 
-div .hover-triangle {
-    width: 0;
-    height: 0;
-    border-right: 60px solid transparent;
-    border-top: 60px solid #008000;
-    border-left: 60px solid transparent;
-
-    position: absolute;
-    alignment-baseline: central;
-}
-
-.query {
-    width: 150px;
-    position: absolute;
+.query-container {
     z-index: 7;
+    width: 150px;
+    flex-direction: column;
+
+    display: none;
+    position: absolute;
 }
 
-/* closing icon */
-.close {
+.triangle-hover {
+    width: 60px;
+    height: 30px;
+
+    display: none;
     position: absolute;
-    right: 32px;
-    top: 32px;
-    width: 32px;
-    height: 32px;
     opacity: 0.3;
 }
 
-.close:hover {
-    opacity: 1;
+.triangle-hover:hover {
+    opacity: 1.0;
 }
 
-.close:before, .close:after {
-    position: absolute;
-    left: 15px;
-    content: ' ';
+/* closing icon */
+.closing-hover {
+    width: 20px;
     height: 20px;
-    width: 2px;
-    background-color: #FF0000;
+
+    display: none;
+    position: absolute;
+    opacity: 0.3;
 }
 
-.close:before {
-    transform: rotate(45deg);
+.closing-hover:hover {
+    opacity: 1.0;
 }
 
-.close:after {
-    transform: rotate(-45deg);
+text {
+    font-size: 20px;
+    text-anchor: middle;
+    alignment-baseline: central;
 }

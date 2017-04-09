@@ -1,4 +1,4 @@
-import {dataset} from 'util';
+import {dataset} from 'util/util';
 
 let svgHeight = 700;
 let svgWidth = 1400;
