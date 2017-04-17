@@ -2,20 +2,20 @@
  * Created by Mike on 06-Apr-17.
  */
 
-const SCALE = d3.scaleLinear();
+const QUERYING_SCALE = d3.scaleLinear();
 const MIN_RANGE = 0;
 const MAX_RANGE = 300;
 
-const BASE_COHORT_NODE = {x: 100, y: 50, id: "baseCohortNode", text: "All Patients"};
+const BASE_COHORT_NODE = {x: 50, y: 70, id: "baseCohortNode", text: "All Patients"};
 const INTERSPACE = {dx: 100, dy: 50};
 const DIVIDER = {y1: BASE_COHORT_NODE.y, y2: 300};
 
 const BASE_GROUP_MAP = new Map();
 const COHORT_QUERY_MAP = new Map();
 
-function initCohortService(dataset) {
+function initDataQueryingService(dataset) {
     initDrawing();
-    SCALE.domain([0, dataset.length]).range([MIN_RANGE, MAX_RANGE]);
+    QUERYING_SCALE.domain([0, dataset.size]).range([MIN_RANGE, MAX_RANGE]);
 
     let baseGroupId = addNewBaseGroup();
     addCohortNode("All", "All", dataset, baseGroupId, true, BASE_COHORT_NODE.text, BASE_COHORT_NODE.id);
@@ -34,10 +34,6 @@ function addNewCohortNode(property, query, dataset) {
         baseGroupId = addNewBaseGroup();
         addAncestorCohortNodesToNewGroup(baseGroupId, selectedCohortNode, linkedList);
     }
-
-/*    if (isQueryingCohortAlreadyExisting(baseGroupId, property, query)) {
-        return;
-    }*/
 
     if (isPropertyAlreadyExistingInBaseGroup(baseGroupId, property)) {
         alert("Property is already existing in cohort!");
@@ -70,12 +66,15 @@ function copyNodeCohortToNewBaseGroup(newBaseGroupId, nodeToCopy, isHeadNode) {
 
 function addCohortNode(property, query, dataset, baseGroupId, isHeadNode = false, text = `${property} : ${query}`, nodeId) {
     let nodeGroupId = `${baseGroupId}_${BASE_GROUP_MAP.get(baseGroupId).length}`;
-    let nodeConfig = composeNodeConfig(baseGroupId, nodeGroupId, text, dataset.length, nodeId);
+    let nodeConfig = composeNodeConfig(baseGroupId, nodeGroupId, text, dataset.size, nodeId);
     let cohort = new Cohort(property, query, dataset);
     let cohortNode = BASE_GROUP_MAP.get(baseGroupId).add(cohort, nodeConfig);
 
     if (isHeadNode) {
         appendGroup(baseGroupId);
+        let pos = nodeConfig.position;
+        let text = baseGroupId.replace(/base/i, '').replace(/-/i, ' ');
+        appendInput(baseGroupId, pos.x, pos.y - 40, text);
     }
 
     if (isQueryingCohortAlreadyExisting(baseGroupId, property, query)) {
@@ -135,7 +134,7 @@ function updateCohortQueryMap(baseGroupId, property, query) {
 
 function composeNodeConfig(baseGroupId, nodeGroupId, text, quantityOfDataset, nodeId = `${nodeGroupId}-${text}`) {
     let position = calculateNodePosition(baseGroupId);
-    let width = SCALE(quantityOfDataset);
+    let width = QUERYING_SCALE(quantityOfDataset);
     return new NodeConfig(baseGroupId, nodeGroupId, nodeId, text, position, width);
 }
 
@@ -187,7 +186,7 @@ function queryCohort(property, query) {
     let dataset = selectedCohortNode.cohort.dataset;
     let hyphenSplit = query.split("-");
     if (hyphenSplit.length > 1) {
-        return executeQuery(dataset, property, "-", hyphenSplit[0].trim().toLowerCase(), hyphenSplit[1].trim().toLowerCase());
+        return executeQuery(dataset, property, "-", hyphenSplit[0].trim(), hyphenSplit[1].trim());
     }
 
     let op = findAnyOperatorInString(query.trim());
@@ -197,7 +196,7 @@ function queryCohort(property, query) {
         query = query.replace(op, "").trim();
     }
 
-    return executeQuery(dataset, property, op, query.toLowerCase());
+    return executeQuery(dataset, property, op, query);
 }
 
 function markAllChildCohortNodes(cssText) {
@@ -213,16 +212,16 @@ function removeCohortNodeAndChildes() {
     let baseGroupId = nodeCohort.nodeConfig.baseGroupId;
     let linkedList = BASE_GROUP_MAP.get(baseGroupId);
 
+    while (nodeCohort) {
+        clearGroup(nodeCohort.nodeConfig.nodeGroupId);
+        updateDataSelectionView(nodeCohort);
+        nodeCohort = nodeCohort.next;
+    }
+
     linkedList.remove(nodeCohort);
     if (!linkedList.head) {
         BASE_GROUP_MAP.set(baseGroupId, null);
         updateDrawing();
-        return;
-    }
-
-    while (nodeCohort) {
-        clearGroup(nodeCohort.nodeConfig.nodeGroupId);
-        nodeCohort = nodeCohort.next;
     }
 }
 

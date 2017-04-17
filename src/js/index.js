@@ -12,8 +12,7 @@ const triangleIcon = document.getElementById("triangleIcon");
 const closingIcon = document.getElementById("closingIcon");
 
 function initApp(dataset) {
-    console.log("index: " + dataset.length);
-    initCohortService(dataset);
+    initDataQueryingService(dataset);
 }
 
 /**
@@ -49,17 +48,16 @@ function applyFilterButtonClickedHandler() {
         return;
     }
 
-    let property = inputProperty.value.trim();
-    property = findProperty(property);
-    if (property === null) {
-        alert("Property does NOT Exist");
+    let property = findProperty(inputProperty.value.trim());
+    if (!property) {
+        alert("Property does NOT Exist.\nPlease enter the exact name as it is in the CSV file.");
         inputProperty.style.cssText = "border-color:#ff0000";
         return;
     }
 
     let query = inputQuery.value.trim();
     let dataset = queryCohort(property, query);
-    if (dataset.length === 0) {
+    if (dataset.size === 0) {
         alert("NO Patient found with queried condition");
         inputQuery.style.cssText = "border-color:#ff0000";
         return;
@@ -128,25 +126,29 @@ let y = 0;
 let w = 0;
 let h = rectHeight;
 function addMouseListenerToCohortNode(element, cohortNode) {
-    element.on("mouseout", hideCohortNodeIcons).on("mouseover", function () {
+    element.on("mouseout", hideCohortNodeIcons)
+        .on("mouseover", function () {
 
-        if (queryContainer.style.display === "flex") {
-            return;
-        }
+            if (queryContainer.style.display === "flex") {
+                return;
+            }
 
-        setSelectedCohortNode(cohortNode);
+            setSelectedCohortNode(cohortNode);
 
-        let nodeConfig = cohortNode.nodeConfig;
-        x = nodeConfig.position.x;
-        y = nodeConfig.position.y;
-        w = nodeConfig.width;
+            let nodeConfig = cohortNode.nodeConfig;
+            x = nodeConfig.position.x;
+            y = nodeConfig.position.y;
+            w = nodeConfig.width;
 
-        displayElement(triangleIcon, x + w / 2, y + h, -30);
+            displayElement(triangleIcon, x + w / 2, y + h, -30);
 
-        if (nodeConfig.id !== BASE_COHORT_NODE.id) {
-            displayElement(closingIcon, x, y, w - 25, 5);
-        }
-    });
+            if (nodeConfig.id !== BASE_COHORT_NODE.id) {
+                displayElement(closingIcon, x, y, w - 25, 5);
+            }
+        })
+        .on("click", function () {
+            updateDataSelectionView(cohortNode);
+        });
 }
 
 function hideCohortNodeIcons() {

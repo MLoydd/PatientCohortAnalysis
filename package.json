@@ -22,6 +22,6 @@
     "webpack": "^2.2.1"
   },
   "dependencies": {
-    //"d3-sankey": "^0.4.2"
+    "bootstrap": "^4.0.0-alpha.6"
   }
 }

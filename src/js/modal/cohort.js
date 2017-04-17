@@ -27,13 +27,3 @@ class Position {
         this.y = y;
     }
 }
-
-class Query {
-    constructor() {
-        this.set = new Set();
-    }
-
-    add(property, query) {
-
-    }
-}

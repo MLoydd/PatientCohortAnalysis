@@ -1,7 +1,3 @@
-#chart {
-
-}
-
 #divQuery {
     display: flex;
     flex-direction: column;
@@ -68,8 +64,70 @@
     opacity: 1.0;
 }
 
+foreignObject body {
+    width: 300px;
+    margin: 0;
+    text-align: center;
+}
+
+foreignObject body input {
+    width: 270px;
+    height: 25px;
+
+    font-size: 20px;
+    text-align: center;
+
+    border: none;
+    border-bottom: 2px solid #000000;
+}
+
 text {
     font-size: 20px;
     text-anchor: middle;
     alignment-baseline: central;
+}
+
+/* Grid Layout */
+#dataSelectionView {
+    min-width: 100%;
+    border-style: solid;
+    opacity: 0;
+
+    font-size: 20px;
+}
+
+#dataSelectionGrid .row {
+    height: 35px;
+    padding-left: 5px;
+    border-bottom-style: solid;
+    border-right-style: ridge;
+    border-color: #d3d3d3;
+}
+
+.column-head {
+    font-weight: bold;
+    border-right-color: #000000 !important;
+}
+
+
+
+.box {
+    font: 10px sans-serif;
+}
+
+.box line,
+.box rect,
+.box circle {
+    fill: #fff;
+    stroke: #000;
+    stroke-width: 1.5px;
+}
+
+.box .center {
+    stroke-dasharray: 3, 3;
+}
+
+.box .outlier {
+    fill: none;
+    stroke: #ccc;
 }

@@ -3,8 +3,8 @@
  */
 
 const svgId = "cohortSVG";
-const svgWidth = 1500;
-const svgHeight = 750;
+const svgWidth = 1400;
+const svgHeight = 500;
 
 const rectHeight = 30;
 const rectInterspace = 20;
@@ -24,12 +24,17 @@ function getGroup(groupName) {
     return d3.select(`#${g}`);
 }
 
+function appendInput(groupId, x, y, text) {
+    getGroup(groupId).append("foreignObject").attr("x", x).attr("y", y)
+        .append("xhtml:body").append("xhtml:input").attr("type", "text").attr("placeholder", text);
+}
+
 function drawRect(groupId, id, x, y, w, h = rectHeight) {
     return getGroup(groupId).append("rect").attr("id", id).attr("x", x).attr("y", y).attr("width", w).attr("height", h);
 }
 
 function drawText(groupId, x, y, text) {
-    return getGroup(groupId).append("text").text(text).attr("x", x).attr("y", y);
+    return getGroup(groupId).append("text").text(text.toLowerCase()).attr("x", x).attr("y", y);
 }
 
 function drawPath(groupId, x, y, w, h = rectInterspace) {
