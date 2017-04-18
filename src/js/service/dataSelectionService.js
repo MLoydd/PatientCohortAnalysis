@@ -93,14 +93,11 @@ function calculateAvailabilityOfEachProperty(dataset) {
  */
 
 const SELECTED_PROPERTY_SET = new Set();
-let selectedProperty = null;
 function updateSelectedPropertySet(property) {
     if (SELECTED_PROPERTY_SET.has(property)) {
         SELECTED_PROPERTY_SET.delete(property);
-        selectedProperty = null;
     } else {
         SELECTED_PROPERTY_SET.add(property);
-        selectedProperty = property;
     }
 
     notifyDataAnalysingViewOnChange();
@@ -108,7 +105,6 @@ function updateSelectedPropertySet(property) {
 
 function clearSelectedPropertySet() {
     SELECTED_PROPERTY_SET.clear();
-    selectedProperty = null;
 }
 
 function highlightCohortColumnItems(columnId) {
@@ -128,7 +124,7 @@ function highlightCohortColumnItems(columnId) {
  */
 
 function notifyDataAnalysingViewOnChange() {
-    updateDataAnalysingView(SELECTED_COHORT_MAP, selectedProperty);
+    updateDataAnalysingView(SELECTED_COHORT_MAP, SELECTED_PROPERTY_SET);
 }
 
 /**

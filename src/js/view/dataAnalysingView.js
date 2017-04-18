@@ -4,76 +4,79 @@
 
 google.charts.load('current', {'packages': ['corechart']});
 
-const OPTIONS = {
-    title: 'Box Plot',
-    height: 500,
-    legend: {position: 'none'},
-    hAxis: {gridlines: {color: '#fff'}},
-    lineWidth: 0,
-    series: [{'color': '#D3362D'}],
-    intervals: {barWidth: 1, boxWidth: 1, lineWidth: 2, style: 'boxes'},
-    interval: {max: {style: 'bars', fillOpacity: 1, color: '#777'}, min: {style: 'bars', fillOpacity: 1, color: '#777'}}
-};
-
 let chart = null;
-
-function clearBoxPlot() {
+function initChart() {
     if (!chart) {
-        return;
+        chart = new google.visualization.LineChart(document.getElementById('dataAnalysingView'));
     }
-    //const chart = new google.visualization.LineChart(document.getElementById('dataAnalysingView'));
-    chart.clearChart();
 }
 
-function drawBoxPlot(dataArray, maxSize) {
+function clearBoxPlot() {
+    if (chart) {
+        chart.clearChart();
+    }
+}
+
+function drawBoxPlot(dataArray, title) {
+
+    const OPTIONS = {
+        title: `Box Plot on ${title}`,
+        height: 750,
+        legend: {position: 'none'},
+        hAxis: {gridlines: {color: '#fff'}},
+        lineWidth: 0,
+        tooltip: {isHtml: true},
+        series: [{'color': '#D3362D'}],
+        intervals: {barWidth: 1, boxWidth: 1, lineWidth: 2, style: 'boxes'},
+        interval: {
+            max: {style: 'bars', fillOpacity: 1, color: '#777'},
+            min: {style: 'bars', fillOpacity: 1, color: '#777'}
+        }
+    };
 
     const data = new google.visualization.DataTable();
-    data.addColumn('string', 'x');
-    for (let i = 1; i < maxSize; i++) {
-        data.addColumn('number', `series${i}`);
-    }
-
+    data.addColumn('string', 'domain');
+    data.addColumn('number', 'Max Value');
+    data.addColumn('number', 'Min Value');
+    data.addColumn('number', 'First Quartile');
+    data.addColumn('number', 'Median Value');
+    data.addColumn('number', 'Third Quartile');
     data.addColumn({id: 'max', type: 'number', role: 'interval'});
     data.addColumn({id: 'min', type: 'number', role: 'interval'});
     data.addColumn({id: 'firstQuartile', type: 'number', role: 'interval'});
     data.addColumn({id: 'median', type: 'number', role: 'interval'});
     data.addColumn({id: 'thirdQuartile', type: 'number', role: 'interval'});
 
-    data.addRows(getBoxPlotValues(dataArray, maxSize, maxSize + 1, maxSize + 2, maxSize + 3, maxSize + 4));
+    for (let a of dataArray) {
+        let row = composeBoxPlotRowArray(a);
+        data.addRow(row);
+    }
 
-    chart = new google.visualization.LineChart(document.getElementById('dataAnalysingView'));
     chart.draw(data, OPTIONS);
 }
 
 /**
  * Takes an array of input data and returns an array of the input data with the box plot
- * interval data appended to each row.
+ * interval data appended to one row.
  */
-function getBoxPlotValues(array, indexMax, indexMin, indexFirstQuartile, indexMedian, indexThirdQuartile) {
+function composeBoxPlotRowArray(dataArray) {
 
-    for (let d of array) {
-        let arr = d.slice(1).sort(function (a, b) {
-            return a - b;
-        });
+    let domain = dataArray.shift();
+    let arr = dataArray.sort(function (a, b) {
+        return a - b;
+    });
 
-        let max = arr[arr.length - 1];
-        let min = arr[0];
-        let median = getMedian(arr);
+    let max = arr[arr.length - 1];
+    let min = arr[0];
+    let median = getMedian(arr);
 
-        // First Quartile is the median from lowest to overall median.
-        let firstQuartile = getMedian(arr.slice(0, 4));
+    // First Quartile is the median from lowest to overall median.
+    let firstQuartile = getMedian(arr.slice(0, 4));
 
-        // Third Quartile is the median from the overall median to the highest.
-        let thirdQuartile = getMedian(arr.slice(3));
+    // Third Quartile is the median from the overall median to the highest.
+    let thirdQuartile = getMedian(arr.slice(3));
 
-        d[indexMax] = max;
-        d[indexMin] = min;
-        d[indexFirstQuartile] = firstQuartile;
-        d[indexMedian] = median;
-        d[indexThirdQuartile] = thirdQuartile;
-    }
-
-    return array;
+    return [domain, max, min, firstQuartile, median, thirdQuartile, max, min, firstQuartile, median, thirdQuartile];
 }
 
 /*
