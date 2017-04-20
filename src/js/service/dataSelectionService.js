@@ -3,29 +3,38 @@
  */
 
 const SELECTED_COHORT_MAP = new Map();
-function updateDataSelectionView(cohortNode) {
+function updateDataSelectionView(cohort) {
     let cssText = null;
-    if (SELECTED_COHORT_MAP.has(cohortNode)) {
-        removeCohortColumn(SELECTED_COHORT_MAP.get(cohortNode));
-        removeCohortFromSelection(cohortNode);
+    if (SELECTED_COHORT_MAP.has(cohort)) {
+        removeCohortFromSelectionView(cohort);
     } else {
-        let baseGroupId = cohortNode.nodeConfig.baseGroupId;
-        let columnId = getColumnId(baseGroupId);
-        addCohortToSelection(cohortNode, columnId);
-
-        let columnColor = getColumnColor(columnId);
-        addCohortColumn(baseGroupId, columnId, columnColor);
-        addCohortColumnItems(columnId, cohortNode.cohort.dataset);
+        let columnId = addCohortToSelectionView(cohort);
         highlightCohortColumnItems(columnId);
-        cssText = `fill: ${columnColor}`;
+        cssText = `fill: ${getColumnColor(columnId)}`;
     }
 
     notifyDataAnalysingViewOnChange();
-    markElement(cohortNode.nodeConfig.id, cssText);
+
+    return cssText;
 }
 
-function addCohortToSelection(cohortNode, columnId) {
-    SELECTED_COHORT_MAP.set(cohortNode, columnId);
+/**
+ * add cohort to selection view functions
+ */
+function addCohortToSelectionView(cohort) {
+    let cohortGroupId = cohort.groupId;
+    let columnId = getColumnId(cohortGroupId);
+    let columnColor = getColumnColor(columnId);
+
+    addCohortToSelectedCohortMap(cohort, columnId);
+    addCohortColumn(cohortGroupId, columnId, columnColor);
+    addCohortColumnItems(columnId, cohort.dataset);
+
+    return columnId;
+}
+
+function addCohortToSelectedCohortMap(cohort, columnId) {
+    SELECTED_COHORT_MAP.set(cohort, columnId);
     if (SELECTED_COHORT_MAP.size === 1) {
         showGrid();
     }
@@ -42,21 +51,8 @@ function showGrid() {
     changeLayoutVisibility(1.0);
 }
 
-function removeCohortFromSelection(cohortNode) {
-    SELECTED_COHORT_MAP.delete(cohortNode);
-    if (SELECTED_COHORT_MAP.size === 0) {
-        hideGrid();
-        clearSelectedPropertySet();
-    }
-}
-
-function hideGrid() {
-    removePropertyColumn();
-    changeLayoutVisibility(null);
-}
-
-function addCohortColumn(baseGroupId, columnId, columnColor) {
-    let columnName = baseGroupId.replace(/base/i, '').replace(/-/i, ' ');
+function addCohortColumn(cohortGroupId, columnId, columnColor) {
+    let columnName = cohortGroupId.replace(/cohort/i, '').replace(/-/i, ' ');
     return drawCohortColumn(columnId, columnName, columnColor);
 }
 
@@ -86,6 +82,30 @@ function calculateAvailabilityOfEachProperty(dataset) {
     }
 
     return map;
+}
+
+/**
+ * remove cohort from selection view functions
+ */
+function removeCohortFromSelectionView(cohort) {
+    let columnId = SELECTED_COHORT_MAP.get(cohort);
+    removeCohortColumn(columnId);
+    removeCohortFromSelectedCohortMap(cohort);
+
+    return columnId;
+}
+
+function removeCohortFromSelectedCohortMap(cohort) {
+    SELECTED_COHORT_MAP.delete(cohort);
+    if (SELECTED_COHORT_MAP.size === 0) {
+        hideGrid();
+    }
+}
+
+function hideGrid() {
+    removePropertyColumn();
+    clearSelectedPropertySet();
+    changeLayoutVisibility(null);
 }
 
 /**
@@ -131,19 +151,19 @@ function notifyDataAnalysingViewOnChange() {
  * util functions
  */
 
-function getColumnId(baseGroupId) {
+function getColumnId(cohortGroupId) {
     let count = 0;
     for (let id of SELECTED_COHORT_MAP.values()) {
-        if (id.includes(baseGroupId)) {
+        if (id.includes(cohortGroupId)) {
             count++;
         }
     }
 
     if (count > 0) {
-        return `${baseGroupId}_${count}`;
+        return `${cohortGroupId}_${count}`;
     }
 
-    return baseGroupId;
+    return cohortGroupId;
 }
 
 function getColumnColor(columnId) {

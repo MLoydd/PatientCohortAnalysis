@@ -2,7 +2,7 @@
  * Created by Mike on 05-Apr-17.
  */
 
-let chartContainer = document.getElementById("chart");
+let dataQueryingView = document.getElementById("dataQueryingView");
 
 const queryContainer = document.getElementById("queryContainer");
 const inputProperty = document.getElementById("inputProperty");
@@ -48,7 +48,7 @@ function applyFilterButtonClickedHandler() {
         return;
     }
 
-    let property = findProperty(inputProperty.value.trim());
+    let property = getProperty(inputProperty.value.trim());
     if (!property) {
         alert("Property does NOT Exist.\nPlease enter the exact name as it is in the CSV file.");
         inputProperty.style.cssText = "border-color:#ff0000";
@@ -99,28 +99,6 @@ function closingIconMouseOutHandler() {
     markAllChildCohortNodes(null);
 }
 
-
-/**
- * Validation
- */
-
-function validateQueryInputFields() {
-    let cssText = "border-color:#ff0000";
-    return !(isInputFieldEmpty(inputProperty, cssText) || isInputFieldEmpty(inputQuery, cssText));
-}
-
-function isInputFieldEmpty(inputElement, cssText) {
-    if (isStringEmpty(inputElement.value)) {
-        inputElement.style.cssText = cssText;
-        return true;
-    }
-    return false;
-}
-
-/**
- * Logic
- */
-
 let x = 0;
 let y = 0;
 let w = 0;
@@ -147,17 +125,38 @@ function addMouseListenerToCohortNode(element, cohortNode) {
             }
         })
         .on("click", function () {
-            updateDataSelectionView(cohortNode);
+            let cssText = updateDataSelectionView(cohortNode.cohort);
+            markElement(cohortNode.nodeConfig.id, cssText);
         });
 }
 
+/**
+ * Validation
+ */
+
+function validateQueryInputFields() {
+    let cssText = "border-color:#ff0000";
+    return !(isInputFieldEmpty(inputProperty, cssText) || isInputFieldEmpty(inputQuery, cssText));
+}
+
+function isInputFieldEmpty(inputElement, cssText) {
+    if (isStringEmpty(inputElement.value)) {
+        inputElement.style.cssText = cssText;
+        return true;
+    }
+    return false;
+}
+
+/**
+ * util functions
+ */
 function hideCohortNodeIcons() {
     triangleIcon.removeAttribute("style");
     closingIcon.removeAttribute("style");
 }
 
 function displayElement(element, x, y, dx = 0, dy = 0, display = "inline") {
-    let coordinates = chartContainer.getBoundingClientRect();
+    let coordinates = dataQueryingView.getBoundingClientRect();
     let left = coordinates.left + x + dx;
     let top = coordinates.top + y + dy;
 

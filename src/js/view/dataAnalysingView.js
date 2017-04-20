@@ -4,27 +4,69 @@
 
 google.charts.load('current', {'packages': ['corechart']});
 
-let chart = null;
-function initChart() {
-    if (!chart) {
-        chart = new google.visualization.LineChart(document.getElementById('dataAnalysingView'));
+let boxPlotChart = null;
+let scatterPlotChart = null;
+function initCharts() {
+    if (!boxPlotChart) {
+        boxPlotChart = new google.visualization.LineChart(document.getElementById('boxPlotChart'));
     }
+
+    if (!scatterPlotChart) {
+        scatterPlotChart = new google.visualization.ScatterChart(document.getElementById('scatterPlotChart'));
+    }
+
+    let element = document.getElementById("dataAnalysingView");
+    element.style.opacity = 1.0;
 }
 
-function clearBoxPlot() {
-    if (chart) {
-        chart.clearChart();
+function clearCharts() {
+    if (boxPlotChart) {
+        boxPlotChart.clearChart();
     }
+
+    if (scatterPlotChart) {
+        scatterPlotChart.clearChart();
+    }
+
+    let element = document.getElementById("dataAnalysingView");
+    element.style.opacity = 0;
 }
 
-function drawBoxPlot(dataArray, title) {
+/**
+ * scatter plot chart functions
+ */
 
-    const OPTIONS = {
+function drawScatterPlotChart(dataArray, hAxis, vAxis) {
+
+    const options = {
+        title: `Comparision : ${hAxis} to ${vAxis}`,
+        height: 750,
+        hAxis: {title: hAxis},
+        vAxis: {title: vAxis},
+        tooltip: {isHtml: true},
+        legend: 'none'
+    };
+
+    const data = new google.visualization.DataTable();
+    data.addColumn("number", hAxis);
+    data.addColumn("number", vAxis);
+    data.addRows(dataArray);
+
+    scatterPlotChart.draw(data, options);
+}
+
+/**
+ * box plot chart functions
+ */
+
+function drawBoxPlotChart(dataArray, title) {
+
+    const options = {
         title: `Box Plot on ${title}`,
         height: 750,
-        legend: {position: 'none'},
         hAxis: {gridlines: {color: '#fff'}},
         lineWidth: 0,
+        legend: 'none',
         tooltip: {isHtml: true},
         series: [{'color': '#D3362D'}],
         intervals: {barWidth: 1, boxWidth: 1, lineWidth: 2, style: 'boxes'},
@@ -46,54 +88,10 @@ function drawBoxPlot(dataArray, title) {
     data.addColumn({id: 'firstQuartile', type: 'number', role: 'interval'});
     data.addColumn({id: 'median', type: 'number', role: 'interval'});
     data.addColumn({id: 'thirdQuartile', type: 'number', role: 'interval'});
+    data.addRows(dataArray);
 
-    for (let a of dataArray) {
-        let row = composeBoxPlotRowArray(a);
-        data.addRow(row);
-    }
-
-    chart.draw(data, OPTIONS);
+    boxPlotChart.draw(data, options);
 }
 
-/**
- * Takes an array of input data and returns an array of the input data with the box plot
- * interval data appended to one row.
- */
-function composeBoxPlotRowArray(dataArray) {
 
-    let domain = dataArray.shift();
-    let arr = dataArray.sort(function (a, b) {
-        return a - b;
-    });
 
-    let max = arr[arr.length - 1];
-    let min = arr[0];
-    let median = getMedian(arr);
-
-    // First Quartile is the median from lowest to overall median.
-    let firstQuartile = getMedian(arr.slice(0, 4));
-
-    // Third Quartile is the median from the overall median to the highest.
-    let thirdQuartile = getMedian(arr.slice(3));
-
-    return [domain, max, min, firstQuartile, median, thirdQuartile, max, min, firstQuartile, median, thirdQuartile];
-}
-
-/*
- * Takes an array and returns the median value.
- */
-function getMedian(array) {
-    let length = array.length;
-
-    /* If the array is an even length the median is the average of the two
-     * middle-most values. Otherwise the median is the middle-most value.
-     */
-    if (length % 2 === 0) {
-        let midUpper = length / 2;
-        let midLower = midUpper - 1;
-
-        return (array[midUpper] + array[midLower]) / 2;
-    } else {
-        return array[Math.floor(length / 2)];
-    }
-}

@@ -2,7 +2,7 @@
  * Created by Mike on 05-Apr-17.
  */
 
-const svgId = "cohortSVG";
+const svgId = "dataQueryingSVG";
 const svgWidth = 1400;
 const svgHeight = 500;
 
@@ -10,8 +10,8 @@ const rectHeight = 30;
 const rectInterspace = 20;
 
 function initDrawing() {
-    d3.select("#chart").append("svg").attr("id", svgId).attr("width", svgWidth).attr("height", svgHeight)
-        .attr("viewbox", "0 0 400 400")/*.append("g").attr("transform", "translate(1, 1)")*/;
+    d3.select("#dataQueryingView").append("svg").attr("id", svgId).attr("width", svgWidth).attr("height", svgHeight)
+        .attr("viewbox", "0 0 400 400");
 }
 
 function appendGroup(groupName, parentGroupName = svgId, cssClass = "node") {

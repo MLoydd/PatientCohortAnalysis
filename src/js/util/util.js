@@ -10,30 +10,42 @@ function isStringEmpty(str) {
     return !str || str.trim() === "";
 }
 
-function findAnyOperatorInString(query) {
+function findComparisionOperatorInString(query) {
+    let hyphenSplit = query.split("-");
+    if (hyphenSplit.length > 1) {
+        return ["-", hyphenSplit[0].trim(), hyphenSplit[1].trim()];
+    }
+
     let regex = new RegExp("[<>]=?|!?=");
-    return regex.exec(query);
+    let result = regex.exec(query);
+    if (result) {
+        let op = result[0];
+        let q = query.replace(op, "").trim();
+        return [op, q, null];
+    }
+
+    return ["=", query, null];
 }
 
-function performComparisionOperation(operator, leftOperand, rightOperand, rightOperand2) {
+function performComparisionOperation(operator, leftOperand, rightOperand1, rightOperand2) {
     switch (operator) {
         case ">":
-            return leftOperand > rightOperand;
+            return leftOperand > rightOperand1;
         case "<":
-            return leftOperand < rightOperand;
+            return leftOperand < rightOperand1;
         case ">=":
-            return leftOperand >= rightOperand;
+            return leftOperand >= rightOperand1;
         case "<=":
-            return leftOperand <= rightOperand;
+            return leftOperand <= rightOperand1;
         case "-":
             if (!rightOperand2) {
-                return leftOperand >= rightOperand;
+                return leftOperand >= rightOperand1;
             }
-            return leftOperand >= rightOperand && leftOperand < rightOperand2;
+            return leftOperand >= rightOperand1 && leftOperand < rightOperand2;
         case "=":
-            return leftOperand === rightOperand;
+            return leftOperand === rightOperand1;
         case null:
-            return leftOperand === rightOperand;
+            return leftOperand === rightOperand1;
         default:
             console.log("Unknown operator: " + operator);
     }

@@ -30,11 +30,11 @@ d3.csv("./csv/data.csv", function (csv) {
     initApp(DATA_SET);
 });
 
-function executeQuery(dataset, property, operator, query, query2 = "") {
+function executeQuery(dataset, property, operator, query1, query2 = "") {
     let subDataset = new Set();
     for (let p of dataset) {
-        let value = p.data.get(property.toLowerCase());
-        if (performComparisionOperation(operator, value.toLowerCase(), query.toLowerCase(), query2.toLowerCase())) {
+        let value = p.data.get(property);
+        if (performComparisionOperation(operator, value.toLowerCase(), query1, query2)) {
             subDataset.add(p);
         }
     }

@@ -3,7 +3,8 @@
  */
 
 class Cohort {
-    constructor(property, query, dataset) {
+    constructor(groupId, property, query, dataset) {
+        this.groupId = groupId;
         this.property = property;
         this.query = query;
         this.dataset = dataset;
@@ -11,8 +12,7 @@ class Cohort {
 }
 
 class NodeConfig {
-    constructor(baseGroupId, nodeGroupId, id, text, position, width) {
-        this.baseGroupId = baseGroupId;
+    constructor(nodeGroupId, id, text, position, width) {
         this.nodeGroupId = nodeGroupId;
         this.id = id;
         this.text = text;

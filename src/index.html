@@ -27,11 +27,19 @@
          onmouseout="closingIconMouseOutHandler()" onmouseover="closingIconMouseOverHandler()">
 </div>
 
-<div id="chart"></div>
-<div id="dataSelectionView" class="container">
+<section id="dataQueryingView"></section>
+<section id="dataSelectionView" class="container">
     <div id="dataSelectionGrid" class="row"></div>
-</div>
-<div id="dataAnalysingView"></div>
+</section>
+<section id="dataAnalysingView" class="container" style="opacity: 0">
+    <div class="row" style="margin-top: 30px">
+        <button disabled>Box Plot Chart</button>
+        <button disabled>Scatter Plot Chart</button>
+    </div>
+
+    <div id="boxPlotChart"></div>
+    <div id="scatterPlotChart"></div>
+</section>
 
 <script src="./js/helper/linkedList.js"></script>
 <script src="./js/util/util.js"></script>
@@ -41,7 +49,7 @@
 <script src="./js/modal/cohort.js"></script>
 <script src="./js/modal/patient.js"></script>
 <script src="./js/modal/db.js"></script>
-<script src="./js/service/dataQueryingService.js"></script>>
+<script src="./js/service/dataQueryingService.js"></script>
 <script src="./js/service/dataSelectionService.js"></script>
 <script src="./js/service/dataAnalysingService.js"></script>
 <script src="./js/index.js"></script>
