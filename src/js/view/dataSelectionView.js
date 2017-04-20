@@ -114,7 +114,7 @@ function createDataAvailabilityBar(baseWidth, baseHeight, width, height) {
     let svg = document.createElementNS(ns, "svg");
     svg.setAttribute("width", `${baseWidth}`);
     svg.setAttribute("height", `${baseHeight}`);
-    svg.style.cssText = "border-style: solid";
+    svg.style.cssText = "background: #d3d3d3";
 
     let rect = document.createElementNS(ns, "rect");
     rect.setAttribute("x", "0");
@@ -133,7 +133,7 @@ function createDataAvailabilityBar(baseWidth, baseHeight, width, height) {
 
 function highlightSelectedPropertyRow(property, cssText, columnId) {
     let container = DATA_SELECTION_GRID;
-    if(columnId) {
+    if (columnId) {
         container = getColumn(columnId);
     }
 

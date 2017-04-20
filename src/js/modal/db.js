@@ -19,7 +19,7 @@ d3.csv("./csv/data.csv", function (csv) {
     csv.forEach(function (row) {
         let patient = new Patient(row.P_ID);
         for (let [k, v] of Object.entries(row)) {
-            patient.add(k.toLowerCase(), v);
+            patient.add(k.toLowerCase(), v === "NA" ? null : v); // TODO extract to a function
         }
 
         DATA_SET.add(patient);
