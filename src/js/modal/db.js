@@ -19,7 +19,8 @@ d3.csv("./csv/data.csv", function (csv) {
     csv.forEach(function (row) {
         let patient = new Patient(row.P_ID);
         for (let [k, v] of Object.entries(row)) {
-            patient.add(k.toLowerCase(), v === "NA" ? null : v); // TODO extract to a function
+            let value = parseValueToType(v.trim().toLowerCase());
+            patient.add(k.trim().toLowerCase(), value);
         }
 
         DATA_SET.add(patient);
@@ -34,12 +35,11 @@ function executeQuery(dataset, property, operator, query1, query2 = "") {
     let subDataset = new Set();
     for (let p of dataset) {
         let value = p.data.get(property);
-        if (performComparisionOperation(operator, value.toLowerCase(), query1, query2)) {
+        if (performComparisionOperation(operator, value, query1, query2)) {
             subDataset.add(p);
         }
     }
 
-    console.log(`subDataset.size : ${subDataset.size}`);
     return subDataset;
 }
 
@@ -54,7 +54,7 @@ function findProperty(property) {
     }
 
     for (let p of PROPERTIES_SET) {
-        if (p.toLowerCase() === property.toLowerCase()) {
+        if (p === property) {
             console.log(`property found: ${p} for ${property}`);
             return p;
         }

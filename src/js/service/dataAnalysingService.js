@@ -75,7 +75,6 @@ function composeDataArraysByCohorts(cohortNodeMap, property) {
 // Takes an array of input data and
 // returns an array of the input data with the box plot interval data appended to one row.
 function composeBoxPlotRowArray(dataArray) {
-
     let domain = dataArray.shift();
     let arr = dataArray.sort(function (a, b) {
         return a - b;
@@ -85,11 +84,12 @@ function composeBoxPlotRowArray(dataArray) {
     let min = arr[0];
     let median = getMedian(arr);
 
+    let arrMedian = Math.round(arr.length / 2);
     // First Quartile is the median from lowest to overall median.
-    let firstQuartile = getMedian(arr.slice(0, 4));
+    let firstQuartile = getMedian(arr.slice(0, arrMedian));
 
     // Third Quartile is the median from the overall median to the highest.
-    let thirdQuartile = getMedian(arr.slice(3));
+    let thirdQuartile = getMedian(arr.slice(arrMedian));
 
     return [domain, max, min, firstQuartile, median, thirdQuartile, max, min, firstQuartile, median, thirdQuartile];
 }
@@ -114,7 +114,7 @@ function composeDataArrayWithOneProperty(dataset, property) {
     const dataArray = [];
     for (let p of dataset) {
         let v = p.data.get(property);
-        dataArray.push(Number(v));
+        dataArray.push(v);
     }
     return dataArray;
 }
@@ -124,7 +124,7 @@ function composeDataArrayWithTwoProperty(dataset, propertyX, propertyY) {
     for (let p of dataset) {
         let x = p.data.get(propertyX);
         let y = p.data.get(propertyY);
-        dataArray.push([Number(x), Number(y)]);
+        dataArray.push([x, y]);
     }
     return dataArray;
 }
@@ -133,15 +133,15 @@ function composeDataArrayWithTwoProperty(dataset, propertyX, propertyY) {
 function getMedian(array) {
     let length = array.length;
 
-    /* If the array is an even length the median is the average of the two
-     * middle-most values. Otherwise the median is the middle-most value.
+    /* If the array is an even length the median is the average of the two middle-most values.
+     * Otherwise the median is the middle-most value.
      */
     if (length % 2 === 0) {
         let midUpper = length / 2;
         let midLower = midUpper - 1;
 
         return (array[midUpper] + array[midLower]) / 2;
-    } else {
-        return array[Math.floor(length / 2)];
     }
+
+    return array[Math.floor(length / 2)];
 }

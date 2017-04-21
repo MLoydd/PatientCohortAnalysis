@@ -4,18 +4,14 @@
 
 const SELECTED_COHORT_MAP = new Map();
 function updateDataSelectionView(cohort) {
-    let cssText = null;
     if (SELECTED_COHORT_MAP.has(cohort)) {
-        removeCohortFromSelectionView(cohort);
-    } else {
-        let columnId = addCohortToSelectionView(cohort);
-        highlightCohortColumnItems(columnId);
-        cssText = `fill: ${getColumnColor(columnId)}`;
+        columnId = removeCohortFromSelectionView(cohort);
+        return null;
     }
 
-    notifyDataAnalysingViewOnChange();
-
-    return cssText;
+    columnId = addCohortToSelectionView(cohort);
+    highlightCohortColumnItems(columnId);
+    return `fill: ${getColumnColor(columnId)}`;
 }
 
 /**
@@ -29,6 +25,8 @@ function addCohortToSelectionView(cohort) {
     addCohortToSelectedCohortMap(cohort, columnId);
     addCohortColumn(cohortGroupId, columnId, columnColor);
     addCohortColumnItems(columnId, cohort.dataset);
+
+    notifyDataAnalysingViewOnChange();
 
     return columnId;
 }
@@ -48,7 +46,7 @@ function showGrid() {
         addPropertyItem(p);
     }
 
-    changeLayoutVisibility(1.0);
+    changeDataSelectionViewVisibility(1.0);
 }
 
 function addCohortColumn(cohortGroupId, columnId, columnColor) {
@@ -91,6 +89,7 @@ function removeCohortFromSelectionView(cohort) {
     let columnId = SELECTED_COHORT_MAP.get(cohort);
     removeCohortColumn(columnId);
     removeCohortFromSelectedCohortMap(cohort);
+    notifyDataAnalysingViewOnChange();
 
     return columnId;
 }
@@ -98,14 +97,16 @@ function removeCohortFromSelectionView(cohort) {
 function removeCohortFromSelectedCohortMap(cohort) {
     SELECTED_COHORT_MAP.delete(cohort);
     if (SELECTED_COHORT_MAP.size === 0) {
+        SELECTED_PROPERTY_SET.clear();
         hideGrid();
     }
 }
 
 function hideGrid() {
-    removePropertyColumn();
-    clearSelectedPropertySet();
-    changeLayoutVisibility(null);
+    if (isDataSelectionViewVisible()) {
+        removePropertyColumn();
+        changeDataSelectionViewVisibility(null);
+    }
 }
 
 /**
@@ -121,10 +122,6 @@ function updateSelectedPropertySet(property) {
     }
 
     notifyDataAnalysingViewOnChange();
-}
-
-function clearSelectedPropertySet() {
-    SELECTED_PROPERTY_SET.clear();
 }
 
 function highlightCohortColumnItems(columnId) {

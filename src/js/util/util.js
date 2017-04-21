@@ -13,18 +13,41 @@ function isStringEmpty(str) {
 function findComparisionOperatorInString(query) {
     let hyphenSplit = query.split("-");
     if (hyphenSplit.length > 1) {
-        return ["-", hyphenSplit[0].trim(), hyphenSplit[1].trim()];
+        return "-";
     }
 
-    let regex = new RegExp("[<>]=?|!?=");
-    let result = regex.exec(query);
+    let result = new RegExp("[<>]=?|!?=").exec(query);
     if (result) {
-        let op = result[0];
-        let q = query.replace(op, "").trim();
-        return [op, q, null];
+        return result[0];
     }
 
-    return ["=", query, null];
+    return "=";
+}
+
+function getComparisionOperandsFromQuery(query, operator) {
+    if (operator === "-") {
+        let querySplit = query.split(operator);
+        return [querySplit[0].trim(), querySplit[1].trim()];
+    }
+
+    if (new RegExp("[<>]=?|!?=").test(query)) {
+        return [query.replace("[<>]=?|!?=", "").trim(), null];
+    }
+
+    return [query, null];
+}
+
+function parseValueToType(value) {
+    if (!value || value === "na" || value === "null") {
+        return null;
+    }
+
+    let number = Number(value);
+    if (Number.isSafeInteger(number)) {
+        return number;
+    }
+
+    return value;
 }
 
 function performComparisionOperation(operator, leftOperand, rightOperand1, rightOperand2) {

@@ -4,8 +4,12 @@
 
 const DATA_SELECTION_GRID = document.getElementById("dataSelectionGrid");
 
-function changeLayoutVisibility(opacity = 1.0) {
+function changeDataSelectionViewVisibility(opacity = 1.0) {
     document.getElementById("dataSelectionView").style.opacity = opacity;
+}
+
+function isDataSelectionViewVisible() {
+    return document.getElementById("dataSelectionView").style.opacity > 0;
 }
 
 /**
@@ -30,6 +34,10 @@ function getColumn(columnId) {
 
 function removeColumn(columnId) {
     let element = getColumn(columnId);
+    if (!element) {
+        return;
+    }
+
     return DATA_SELECTION_GRID.removeChild(element);
 }
 
@@ -94,6 +102,9 @@ function drawCohortColumn(columnId, columnName, columnColor) {
 }
 
 function removeCohortColumn(columnId) {
+    if (!columnId) {
+        return;
+    }
     return removeColumn(columnId);
 }
 

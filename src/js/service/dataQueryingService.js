@@ -32,12 +32,12 @@ function addNewCohortNode(property, query, dataset) {
         return;
     }
 
-/*
-    if (isPropertyExistingInCohortGroup(selectedCohortNode, property)) {
-        alert("Property is already existing in cohort!");
-        return;
-    }
-*/
+    /*
+     if (isPropertyExistingInCohortGroup(selectedCohortNode, property)) {
+     alert("Property is already existing in cohort!");
+     return;
+     }
+     */
 
     if (isQueryingCohortGroupExisting(cohortGroupId, property, query)) {
         alert("Cohort with this query already exists! The existing cohort is : " + cohortGroupId);
@@ -193,14 +193,22 @@ function calculateNodePosition(cohortGroupId) {
 }
 
 function getProperty(property) {
+    if (!property) {
+        return;
+    }
+
     return findProperty(property);
 }
 
 function queryCohort(property, query) {
     let dataset = selectedCohortNode.cohort.dataset;
 
-    let q = findComparisionOperatorInString(query.toLowerCase());
-    return executeQuery(dataset, property.toLowerCase(), q[0], q[1], q[2]);
+    let operator = findComparisionOperatorInString(query);
+    let operands = getComparisionOperandsFromQuery(query, operator);
+    let operand1 = parseValueToType(operands[0]);
+    let operand2 = parseValueToType(operands[1]);
+
+    return executeQuery(dataset, property, operator, operand1, operand2);
 }
 
 function markAllChildCohortNodes(cssText) {
@@ -222,7 +230,7 @@ function removeCohortNodeAndChildes() {
         cohortNode = cohortNode.next;
     }
 
-    linkedList.remove(cohortNode);
+    linkedList.remove(selectedCohortNode);
     if (!linkedList.head) {
         COHORT_GROUP_MAP.set(cohortGroupId, null);
         updateDrawing();

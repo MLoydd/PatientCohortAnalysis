@@ -48,14 +48,14 @@ function applyFilterButtonClickedHandler() {
         return;
     }
 
-    let property = getProperty(inputProperty.value.trim());
+    let property = getProperty(inputProperty.value.trim().toLowerCase());
     if (!property) {
         alert("Property does NOT Exist.\nPlease enter the exact name as it is in the CSV file.");
         inputProperty.style.cssText = "border-color:#ff0000";
         return;
     }
 
-    let query = inputQuery.value.trim();
+    let query = inputQuery.value.trim().toLowerCase();
     let dataset = queryCohort(property, query);
     if (dataset.size === 0) {
         alert("NO Patient found with queried condition");
