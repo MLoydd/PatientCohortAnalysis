@@ -31,7 +31,8 @@ function getComparisionOperandsFromQuery(query, operator) {
     }
 
     if (new RegExp("[<>]=?|!?=").test(query)) {
-        return [query.replace("[<>]=?|!?=", "").trim(), null];
+        let q = query.replace(/[<>]=?|!?=/, "");
+        return [q.trim(), null];
     }
 
     return [query, null];
