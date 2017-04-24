@@ -10,71 +10,6 @@ function isStringEmpty(str) {
     return !str || str.trim() === "";
 }
 
-function findComparisionOperatorInString(query) {
-    let hyphenSplit = query.split("-");
-    if (hyphenSplit.length > 1) {
-        return "-";
-    }
-
-    let result = new RegExp("[<>]=?|!?=").exec(query);
-    if (result) {
-        return result[0];
-    }
-
-    return "=";
-}
-
-function getComparisionOperandsFromQuery(query, operator) {
-    if (operator === "-") {
-        let querySplit = query.split(operator);
-        return [querySplit[0].trim(), querySplit[1].trim()];
-    }
-
-    if (new RegExp("[<>]=?|!?=").test(query)) {
-        let q = query.replace(/[<>]=?|!?=/, "");
-        return [q.trim(), null];
-    }
-
-    return [query, null];
-}
-
-function parseValueToType(value) {
-    if (!value || value === "na" || value === "null") {
-        return null;
-    }
-
-    let number = Number(value);
-    if (Number.isSafeInteger(number)) {
-        return number;
-    }
-
-    return value;
-}
-
-function performComparisionOperation(operator, leftOperand, rightOperand1, rightOperand2) {
-    switch (operator) {
-        case ">":
-            return leftOperand > rightOperand1;
-        case "<":
-            return leftOperand < rightOperand1;
-        case ">=":
-            return leftOperand >= rightOperand1;
-        case "<=":
-            return leftOperand <= rightOperand1;
-        case "-":
-            if (!rightOperand2) {
-                return leftOperand >= rightOperand1;
-            }
-            return leftOperand >= rightOperand1 && leftOperand < rightOperand2;
-        case "=":
-            return leftOperand === rightOperand1;
-        case null:
-            return leftOperand === rightOperand1;
-        default:
-            console.log("Unknown operator: " + operator);
-    }
-}
-
 function getIndexOfKeyInMap(map, key) {
     let index = 0;
     for (let k of map.keys()) {
@@ -84,4 +19,22 @@ function getIndexOfKeyInMap(map, key) {
         index++;
     }
     return index;
+}
+
+function areBothSetsEqual(set1, set2) {
+    if (set1.size !== set2.size) {
+        return false;
+    }
+
+    for (let d of set1) {
+        if (!set2.has(d)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function getCohortGroupName(cohortGroupId) {
+    return cohortGroupId.replace(/cohort/i, '').replace(/-/i, ' ');
 }

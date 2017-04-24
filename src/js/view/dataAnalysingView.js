@@ -6,30 +6,54 @@ google.charts.load('current', {'packages': ['corechart']});
 
 let boxPlotChart = null;
 let scatterPlotChart = null;
-function initCharts() {
-    if (!boxPlotChart) {
-        boxPlotChart = new google.visualization.LineChart(document.getElementById('boxPlotChart'));
+
+window.onload = () => {
+    boxPlotChart = new google.visualization.LineChart(document.getElementById('chart'));
+    scatterPlotChart = new google.visualization.ScatterChart(document.getElementById('chart'));
+};
+
+function showAnalysingView() {
+    clearCharts();
+    if (document.getElementById("boxPlotBtn").disabled === true) {
+        showBoxPlotChart();
+    } else {
+        showScatterPlotChart();
     }
 
-    if (!scatterPlotChart) {
-        scatterPlotChart = new google.visualization.ScatterChart(document.getElementById('scatterPlotChart'));
-    }
+    document.getElementById("dataAnalysingView").style.display = "block";
+}
 
-    let element = document.getElementById("dataAnalysingView");
-    element.style.opacity = 1.0;
+function hideAnalysingView() {
+    clearCharts();
+    document.getElementById("dataAnalysingView").removeAttribute("style");
+}
+
+function showBoxPlotChart() {
+    document.getElementById("boxPlotBtn").disabled = true;
+    document.getElementById("scatterPlotBtn").disabled = false;
+    clearCharts();
+
+    getBoxPlotChartData();
+}
+
+function showScatterPlotChart() {
+    document.getElementById("scatterPlotBtn").disabled = true;
+    document.getElementById("boxPlotBtn").disabled = false;
+    clearCharts();
+
+    try {
+        getScatterPlotChartData();
+    } catch (e) {
+        if (e instanceof ChartDataError) {
+            document.getElementById("chartMessage").innerHTML = e.message;
+        }
+    }
 }
 
 function clearCharts() {
-    if (boxPlotChart) {
-        boxPlotChart.clearChart();
-    }
-
-    if (scatterPlotChart) {
-        scatterPlotChart.clearChart();
-    }
-
-    let element = document.getElementById("dataAnalysingView");
-    element.style.opacity = 0;
+    boxPlotChart.clearChart();
+    scatterPlotChart.clearChart();
+    document.getElementById("chartMessage").innerHTML = "";
 }
 
 /**
@@ -92,6 +116,3 @@ function drawBoxPlotChart(dataArray, title) {
 
     boxPlotChart.draw(data, options);
 }
-
-
-

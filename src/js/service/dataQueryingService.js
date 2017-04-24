@@ -2,21 +2,20 @@
  * Created by Mike on 06-Apr-17.
  */
 
-const QUERYING_SCALE = d3.scaleLinear();
+const rectHeight = 30;
 const RANGE = {min: 0, max: 300};
-
-const BASE_COHORT_NODE = {x: 50, y: 70, id: "baseCohortNode", text: "All Patients"};
 const INTERSPACE = {dx: 100, dy: 50};
-const DIVIDER = {y1: BASE_COHORT_NODE.y, y2: 300};
 
 const COHORT_GROUP_MAP = new Map();
+const QUERYING_SCALE = d3.scaleLinear();
 
 function initDataQueryingService(dataset) {
     initDrawing();
     QUERYING_SCALE.domain([0, dataset.size]).range([RANGE.min, RANGE.max]);
 
-    let cohortGroupId = setNewCohortGroupToCohortGroupMap();
-    addCohortNode("Patients", "*", dataset, cohortGroupId, true, BASE_COHORT_NODE.text, BASE_COHORT_NODE.id);
+    let cohortGroupId = createNewCohortGroup();
+    let cohortNode = composeCohortNode("Patients", "*", dataset, cohortGroupId, BASE_COHORT_NODE.text, BASE_COHORT_NODE.id);
+    drawBaseNodeGroup(cohortNode);
 }
 
 let selectedCohortNode = null;
@@ -24,220 +23,151 @@ function setSelectedCohortNode(cohortNode) {
     selectedCohortNode = cohortNode;
 }
 
-function addNewCohortNode(property, query, dataset) {
-    let cohortGroupId = selectedCohortNode.cohort.groupId;
-
-    if (!COHORT_GROUP_MAP.has(cohortGroupId)) {
-        console.log(`Cohort Group is not existing for CohortGroupId : ${cohortGroupId}`);
-        return;
+function queryCohort(property, query) {
+    let p = findProperty(property);
+    if (!p) {
+        throw new PropertyInputError("Property does NOT Exist.\nPlease enter the exact name as it is in the CSV file.");
     }
 
-    /*
-     if (isPropertyExistingInCohortGroup(selectedCohortNode, property)) {
-     alert("Property is already existing in cohort!");
-     return;
-     }
-     */
-
-    if (isQueryingCohortGroupExisting(cohortGroupId, property, query)) {
-        alert("Cohort with this query already exists! The existing cohort is : " + cohortGroupId);
-        return;
+    let dataset = executeQuery(selectedCohortNode.cohort.dataset, property, query);
+    if (dataset.size === 0) {
+        throw new QueryInputError("NO Patient found with queried condition");
     }
 
-    if (selectedCohortNode.next) {
-        let linkedList = COHORT_GROUP_MAP.get(cohortGroupId);
-        cohortGroupId = setNewCohortGroupToCohortGroupMap();
-        addAncestorCohortNodesToNewGroup(cohortGroupId, selectedCohortNode, linkedList);
+    let cohortGroupId = findCohortInCohortGroupMap(dataset);
+    if (cohortGroupId) {
+        let r = getUserConfirmation(`Querying cohort already exists in: ${cohortGroupId} !\nDo you still want to create this cohort?`);
+        if (!r) {
+            return;
+        }
     }
 
-    addCohortNode(property, query, dataset, cohortGroupId);
+    updateQueryingView(property, query, dataset);
 }
 
-function setNewCohortGroupToCohortGroupMap() {
+function findCohortInCohortGroupMap(dataset) {
+    for (let l of COHORT_GROUP_MAP.values()) {
+        let n = l.head;
+        while (n) {
+            if (areBothSetsEqual(n.cohort.dataset, dataset)) {
+                return n.cohort.groupId;
+            }
+            n = n.next;
+        }
+    }
+
+    return null;
+}
+
+function updateQueryingView(property, query, dataset) {
+    let cohortGroupId = selectedCohortNode.cohort.groupId;
+    if (selectedCohortNode.next) {
+        drawDivider(cohortGroupId, calculateDividerClientRectLeft(cohortGroupId));
+        cohortGroupId = copyCohortGroup(selectedCohortNode);
+    }
+
+    let cohortNode = composeCohortNode(property, query, dataset, cohortGroupId);
+    drawCohortNodeGroup(cohortNode);
+}
+
+function createNewCohortGroup() {
     let cohortGroupId = `cohortGroup-${COHORT_GROUP_MAP.size}`;
     COHORT_GROUP_MAP.set(cohortGroupId, new LinkedList());
     return cohortGroupId;
 }
 
-function addAncestorCohortNodesToNewGroup(newcohortGroupId, cohortNode, linkedList) {
-    let nodeToCheck = linkedList.head;
-    while (nodeToCheck !== cohortNode.next) {
-        let isHeadNode = linkedList.head === nodeToCheck;
-        copyNodeCohortToNewBaseGroup(newcohortGroupId, nodeToCheck, isHeadNode);
-        nodeToCheck = nodeToCheck.next;
+/**
+ * copy cohort group functions
+ */
+function copyCohortGroup(cohortNode) {
+    let linkedList = COHORT_GROUP_MAP.get(cohortNode.cohort.groupId);
+    return copyCohortNodesToNewCohortGroup(cohortNode, linkedList);
+}
+
+function copyCohortNodesToNewCohortGroup(refCohortNode, linkedListToCopy) {
+    let newCohortGroupId = createNewCohortGroup();
+    let nodeToCopy = linkedListToCopy.head;
+    while (nodeToCopy !== refCohortNode.next) {
+        let cohortNode = copyCohortNode(newCohortGroupId, nodeToCopy);
+        if (linkedListToCopy.head === nodeToCopy) {
+            drawBaseNodeGroup(cohortNode);
+        } else {
+            drawCohortNodeGroup(cohortNode);
+        }
+        nodeToCopy = nodeToCopy.next;
     }
+    return newCohortGroupId;
 }
 
-function copyNodeCohortToNewBaseGroup(newcohortGroupId, nodeToCopy, isHeadNode) {
-    let cohort = nodeToCopy.cohort;
-    let nodeConfig = nodeToCopy.nodeConfig;
-    addCohortNode(cohort.property, cohort.query, cohort.dataset, newcohortGroupId, isHeadNode, nodeConfig.text);
+function copyCohortNode(newCohortGroupId, cohortNode) {
+    let c = cohortNode.cohort;
+    return composeCohortNode(c.property, c.query, c.dataset, newCohortGroupId, cohortNode.nodeConfig.text);
 }
 
-function addCohortNode(property, query, dataset, cohortGroupId, isHeadNode = false, text = `${property} : ${query}`, nodeId) {
+/**
+ * cohort node compose functions
+ */
+
+function composeCohortNode(property, query, dataset, cohortGroupId, text = `${property} : ${query}`, nodeId) {
     let nodeGroupId = `${cohortGroupId}_${COHORT_GROUP_MAP.get(cohortGroupId).length}`;
+
     let nodeConfig = composeNodeConfig(cohortGroupId, nodeGroupId, text, dataset.size, nodeId);
     let cohort = new Cohort(cohortGroupId, property, query, dataset);
-    let cohortNode = COHORT_GROUP_MAP.get(cohortGroupId).add(cohort, nodeConfig);
-
-    if (isHeadNode) {
-        appendGroup(cohortGroupId);
-        let pos = nodeConfig.position;
-        let text = cohortGroupId.replace(/cohort/i, '').replace(/-/i, ' ');
-        appendInput(cohortGroupId, pos.x, pos.y - 40, text);
-    }
-
-    drawCohortNode(cohortNode, isHeadNode)
+    return COHORT_GROUP_MAP.get(cohortGroupId).add(cohort, nodeConfig);
 }
 
-function isPropertyExistingInCohortGroup(cohortNode, property) {
-    let cohortGroupId = cohortNode.cohort.groupId;
-    let linkedList = COHORT_GROUP_MAP.get(cohortGroupId);
-    let node = linkedList.head;
-    while (node) {
-        if (node === cohortNode) {
-            break;
-        }
-
-        if (node.cohort.property === property) {
-            return true;
-        }
-
-        node = node.next;
-    }
-    return false;
+function composeNodeConfig(cohortGroupId, nodeGroupId, text, datasetSize, nodeId = `${nodeGroupId}-${text}`) {
+    let clientRect = composeNodeClientRect(cohortGroupId, datasetSize);
+    return new NodeConfig(nodeGroupId, nodeId, text, clientRect);
 }
 
-function isQueryingCohortGroupExisting(cohortGroupId, property, query) {
-    if (!COHORT_GROUP_MAP.get(cohortGroupId)) {
-        return;
-    }
-
-    let cohortGroupQuery = composeCohortGroupQuery(cohortGroupId, property, query);
-
-    for (let id of COHORT_GROUP_MAP.keys()) {
-        let q = composeCohortGroupQuery(id);
-        if (q === cohortGroupQuery) {
-            return true;
-        }
-    }
-
-    return false;
+function composeNodeClientRect(cohortGroupId, datasetSize) {
+    let left = calculateCohortNodeClientRectLeft(cohortGroupId);
+    let top = calculateCohortNodeClientRectTop(cohortGroupId);
+    let width = QUERYING_SCALE(datasetSize);
+    return new ClientRect(left, top, width, rectHeight);
 }
 
-function composeCohortGroupQuery(cohortGroupId, property, query) {
-    let linkedList = COHORT_GROUP_MAP.get(cohortGroupId);
-    let node = linkedList.head;
-
-    let q = "";
-    while (node) {
-        q = q.concat(`${q}>>>${node.cohort.property}-${node.cohort.query}`);
-        node = node.next;
-    }
-
-    if (property && query) {
-        q = q.concat(`${q}>>>${property}-${query}`);
-    }
-
-    return q;
-}
-
-function composeNodeConfig(cohortGroupId, nodeGroupId, text, quantityOfDataset, nodeId = `${nodeGroupId}-${text}`) {
-    let position = calculateNodePosition(cohortGroupId);
-    let width = QUERYING_SCALE(quantityOfDataset);
-    return new NodeConfig(nodeGroupId, nodeId, text, position, width);
-}
-
-function drawCohortNode(cohortNode, isHeadNode) {
-    let nodeConfig = cohortNode.nodeConfig;
-    let id = nodeConfig.id;
-    let g = nodeConfig.nodeGroupId;
-    let x = nodeConfig.position.x;
-    let y = nodeConfig.position.y;
-    let w = nodeConfig.width;
-    let t = nodeConfig.text;
-
-    appendGroup(g, cohortNode.cohort.groupId);
-
-    if (isHeadNode && id !== BASE_COHORT_NODE.id) {
-        addGroupDivider(g);
-    }
-
-    if (!isHeadNode) {
-        drawPath(g, x, y, w);
-    }
-
-    let nodeElement = drawRect(g, id, x, y, w);
-    addMouseListenerToCohortNode(nodeElement, cohortNode);
-
-    let textElement = drawText(g, x + w / 2, y + rectHeight / 2, t);
-    addMouseListenerToCohortNode(textElement, cohortNode);
-}
-
-function addGroupDivider(groupId) {
-    let x = BASE_COHORT_NODE.x + (COHORT_GROUP_MAP.size - 1) * (RANGE.max + INTERSPACE.dx) - INTERSPACE.dx / 2;
-    drawDivider(groupId, x, DIVIDER.y1, x, DIVIDER.y2);
-}
-
-function calculateNodePosition(cohortGroupId) {
-    if (!COHORT_GROUP_MAP.has(cohortGroupId)) {
-        return;
-    }
-
+function calculateCohortNodeClientRectLeft(cohortGroupId) {
     let count = getIndexOfKeyInMap(COHORT_GROUP_MAP, cohortGroupId);
+    return BASE_COHORT_NODE.x + count * (RANGE.max + INTERSPACE.dx);
+}
+
+function calculateCohortNodeClientRectTop(cohortGroupId) {
     let length = COHORT_GROUP_MAP.get(cohortGroupId).length;
-
-    let x = BASE_COHORT_NODE.x + count * (RANGE.max + INTERSPACE.dx);
-    let y = BASE_COHORT_NODE.y + length * INTERSPACE.dy;
-    return new Position(x, y);
+    return BASE_COHORT_NODE.y + length * INTERSPACE.dy;
 }
 
-function getProperty(property) {
-    if (!property) {
-        return;
-    }
-
-    return findProperty(property);
+function calculateDividerClientRectLeft(cohortGroupId) {
+    let size = COHORT_GROUP_MAP.size;
+    return BASE_COHORT_NODE.x + size * (RANGE.max + INTERSPACE.dx) - INTERSPACE.dx / 2;
 }
 
-function queryCohort(property, query) {
-    let dataset = selectedCohortNode.cohort.dataset;
-
-    let operator = findComparisionOperatorInString(query);
-    let operands = getComparisionOperandsFromQuery(query, operator);
-    let operand1 = parseValueToType(operands[0]);
-    let operand2 = parseValueToType(operands[1]);
-
-    return executeQuery(dataset, property, operator, operand1, operand2);
-}
-
-function markAllChildCohortNodes(cssText) {
-    let nodeCohort = selectedCohortNode.next;
-    while (nodeCohort) {
-        markElement(nodeCohort.nodeConfig.id, cssText);
-        nodeCohort = nodeCohort.next;
-    }
-}
-
-function removeCohortNodeAndChildes() {
+/**
+ * cohort remove functions
+ */
+function removeCohortNodeAndItsDependencies() {
     let cohortNode = selectedCohortNode;
-    let cohortGroupId = cohortNode.cohort.groupId;
-    let linkedList = COHORT_GROUP_MAP.get(cohortGroupId);
-
     while (cohortNode) {
-        clearGroup(cohortNode.nodeConfig.nodeGroupId);
-        removeCohortFromSelectionView(cohortNode.cohort);
+        removeCohortNodeFromQueryingView(cohortNode.nodeConfig.nodeGroupId);
+        removeCohortFromDataSelection(cohortNode.cohort);
         cohortNode = cohortNode.next;
     }
 
+    let linkedList = COHORT_GROUP_MAP.get(selectedCohortNode.cohort.groupId);
     linkedList.remove(selectedCohortNode);
+    updateCohortGroupLinkedListOnChange(selectedCohortNode.cohort.groupId);
+}
+
+function updateCohortGroupLinkedListOnChange(cohortGroupId) {
+    let linkedList = COHORT_GROUP_MAP.get(cohortGroupId);
     if (!linkedList.head) {
         COHORT_GROUP_MAP.set(cohortGroupId, null);
-        updateDrawing();
+        redrawView();
     }
 }
 
-function updateDrawing() {
+function redrawView() {
     let copy = new Map(COHORT_GROUP_MAP.entries());
     COHORT_GROUP_MAP.clear();
 
@@ -250,16 +180,26 @@ function updateDrawing() {
         }
 
         if (v === null) {
-            clearGroup(k);
+            removeCohortNodeFromQueryingView(k);
             break;
         }
     }
 
     for (let [k, v] of copy) {
-        clearGroup(k);
+        removeCohortNodeFromQueryingView(k);
 
-        let cohortGroupId = setNewCohortGroupToCohortGroupMap();
         let node = v.get(v.length - 1);
-        addAncestorCohortNodesToNewGroup(cohortGroupId, node, v);
+        copyCohortNodesToNewCohortGroup(node, v);
+    }
+}
+
+/**
+ * util functions
+ */
+function highlightChildrenOfSelectedCohortNode(cssText) {
+    let nodeCohort = selectedCohortNode.next;
+    while (nodeCohort) {
+        markElement(nodeCohort.nodeConfig.id, cssText);
+        nodeCohort = nodeCohort.next;
     }
 }

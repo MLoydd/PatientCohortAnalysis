@@ -5,13 +5,12 @@
 
 .node line {
     stroke: #808080;
-    stroke-width: 3;
+    stroke-width: 0.5px;
 }
 
 .node rect {
     shape-rendering: crispEdges;
-    fill: #ffffe0;
-    stroke: #000000;
+    fill: #efefdf;
 }
 
 .node-hover {
@@ -22,10 +21,8 @@
 
 .node path {
     shape-rendering: crispEdges;
-    fill: #ffffe0;
-    fill-opacity: .7;
-    stroke: #000000;
-    stroke-opacity: .2;
+    fill: #efefdf;
+    fill-opacity: .4;
 }
 
 .query-container {
@@ -78,23 +75,24 @@ foreignObject body input {
     text-align: center;
 
     border: none;
-    border-bottom: 2px solid #000000;
+    border-bottom: 0.5px solid #808080;
 }
 
 text {
-    font-size: 14px;
+    font-size: 16px;
     text-anchor: middle;
     alignment-baseline: central;
 }
 
-/* Grid Layout */
+/* Data Selection View */
 #dataSelectionView {
+    display: none;
     min-width: 100%;
-    opacity: 0;
 
-    background: #e5e5e5;
+    background: #fdfdfd;
     border-top-style: outset;
     font-size: 20px;
+    margin: 0 10px 30px 10px;
 }
 
 #dataSelectionGrid .row {
@@ -102,7 +100,11 @@ text {
     padding-left: 5px;
     border-bottom-style: solid;
     border-bottom-width: 0.5px;
-    border-color: #d3d3d3;
+    border-color: #dfdfdf;
+}
+
+#dataSelectionGrid .row:nth-child(odd) {
+    background-color: #f9f9f9;
 }
 
 .column-head {
@@ -110,23 +112,17 @@ text {
     border-right-color: #000000 !important;
 }
 
-.box {
-    font: 10px sans-serif;
+#dataAnalysingView {
+    display: none;
 }
 
-.box line,
-.box rect,
-.box circle {
-    fill: #fff;
-    stroke: #000;
-    stroke-width: 1.5px;
-}
+#dataAnalysingView .row button {
+    margin-right: 20px;
 
-.box .center {
-    stroke-dasharray: 3, 3;
-}
-
-.box .outlier {
-    fill: none;
-    stroke: #ccc;
+    display: inline-block;
+    text-align: center;
+    text-decoration: none;
+    padding: 15px;
+    border: none;
+    border-bottom: solid 0.5px #2aabd2;
 }

@@ -3,27 +3,19 @@
  */
 
 const SELECTED_COHORT_MAP = new Map();
-function updateDataSelectionView(cohort) {
-    if (SELECTED_COHORT_MAP.has(cohort)) {
-        columnId = removeCohortFromSelectionView(cohort);
-        return null;
-    }
-
-    columnId = addCohortToSelectionView(cohort);
-    highlightCohortColumnItems(columnId);
-    return `fill: ${getColumnColor(columnId)}`;
+function addCohortNodeToDataSelection(cohort, nodeColor) {
+    let columnId = addCohortToSelectionGrid(cohort, nodeColor);
+    updatePropertySelectionOnAddedColumn(columnId);
 }
 
 /**
  * add cohort to selection view functions
  */
-function addCohortToSelectionView(cohort) {
+function addCohortToSelectionGrid(cohort, nodeColor) {
     let cohortGroupId = cohort.groupId;
-    let columnId = getColumnId(cohortGroupId);
-    let columnColor = getColumnColor(columnId);
+    let columnId = addCohortToDataSelection(cohort);
 
-    addCohortToSelectedCohortMap(cohort, columnId);
-    addCohortColumn(cohortGroupId, columnId, columnColor);
+    addCohortColumn(cohortGroupId, columnId, nodeColor);
     addCohortColumnItems(columnId, cohort.dataset);
 
     notifyDataAnalysingViewOnChange();
@@ -31,26 +23,29 @@ function addCohortToSelectionView(cohort) {
     return columnId;
 }
 
-function addCohortToSelectedCohortMap(cohort, columnId) {
+function addCohortToDataSelection(cohort) {
+    let columnId = getColumnId(cohort.groupId);
     SELECTED_COHORT_MAP.set(cohort, columnId);
     if (SELECTED_COHORT_MAP.size === 1) {
         showGrid();
     }
+
+    return columnId;
 }
 
 function showGrid() {
     addPropertyColumn();
 
-    let properties = getProperties();
+    let properties = getAnalysableProperties();
     for (let p of properties) {
         addPropertyItem(p);
     }
 
-    changeDataSelectionViewVisibility(1.0);
+    showSelectionView();
 }
 
 function addCohortColumn(cohortGroupId, columnId, columnColor) {
-    let columnName = cohortGroupId.replace(/cohort/i, '').replace(/-/i, ' ');
+    let columnName = getCohortGroupName(cohortGroupId);
     return drawCohortColumn(columnId, columnName, columnColor);
 }
 
@@ -58,15 +53,19 @@ function addCohortColumnItems(columnId, dataset) {
     let map = calculateAvailabilityOfEachProperty(dataset);
     for (let [k, v] of map) {
         let width = 150 * v / dataset.size;
-        let rect = createDataAvailabilityBar(150, 25, width, 25);
-        drawCohortColumnItem(columnId, `${columnId}+${k}`, rect);
+        drawCohortColumnItem(columnId, `${columnId}+${k}`, width);
     }
 }
 
 function calculateAvailabilityOfEachProperty(dataset) {
+    let properties = getAnalysableProperties();
     let map = new Map();
     for (let p of dataset) {
         for (let [k, v] of p.data) {
+            if (!properties.has(k)) {
+                continue;
+            }
+
             let c = map.get(k);
             if (!c) {
                 c = 0;
@@ -85,7 +84,7 @@ function calculateAvailabilityOfEachProperty(dataset) {
 /**
  * remove cohort from selection view functions
  */
-function removeCohortFromSelectionView(cohort) {
+function removeCohortFromDataSelection(cohort) {
     let columnId = SELECTED_COHORT_MAP.get(cohort);
     removeCohortColumn(columnId);
     removeCohortFromSelectedCohortMap(cohort);
@@ -105,36 +104,59 @@ function removeCohortFromSelectedCohortMap(cohort) {
 function hideGrid() {
     if (isDataSelectionViewVisible()) {
         removePropertyColumn();
-        changeDataSelectionViewVisibility(null);
+        hideSelectionView();
     }
 }
 
 /**
- * property row selection changes
+ * property selection changes
  */
-
 const SELECTED_PROPERTY_SET = new Set();
-function updateSelectedPropertySet(property) {
-    if (SELECTED_PROPERTY_SET.has(property)) {
-        SELECTED_PROPERTY_SET.delete(property);
-    } else {
-        SELECTED_PROPERTY_SET.add(property);
-    }
-
+function addPropertyToPropertySet(property) {
+    SELECTED_PROPERTY_SET.add(property);
     notifyDataAnalysingViewOnChange();
 }
 
-function highlightCohortColumnItems(columnId) {
+function removePropertyFromPropertySet(property) {
+    SELECTED_PROPERTY_SET.delete(property);
+    notifyDataAnalysingViewOnChange();
+}
+
+function isPropertySelected(property) {
+    return SELECTED_PROPERTY_SET.has(property);
+}
+
+function updatePropertySelectionOnAddedColumn(columnId) {
     if (SELECTED_PROPERTY_SET.size === 0) {
         return;
     }
 
-    let cssText = "border-top: 3px solid #ff8c00; border-bottom: 3px solid #ff8c00;";
     for (let p of SELECTED_PROPERTY_SET) {
-        highlightSelectedPropertyRow(p, cssText, columnId);
+        highlightColumnItems(columnId, p);
     }
 }
 
+/**
+ * util functions
+ */
+function getSelectedCohortNodeCountByCohortGroupId(cohortGroupId) {
+    let count = 0;
+    for (let c of SELECTED_COHORT_MAP.keys()) {
+        if (c.groupId === cohortGroupId) {
+            count++;
+        }
+    }
+    return count;
+}
+
+function isCohortNodeSelected(cohort) {
+    return SELECTED_COHORT_MAP.has(cohort);
+}
+
+function getColumnId(cohortGroupId) {
+    let c = getSelectedCohortNodeCountByCohortGroupId(cohortGroupId);
+    return `${cohortGroupId}_${c}`;
+}
 
 /**
  * notification to DataAnalysingService
@@ -142,48 +164,4 @@ function highlightCohortColumnItems(columnId) {
 
 function notifyDataAnalysingViewOnChange() {
     updateDataAnalysingView(SELECTED_COHORT_MAP, SELECTED_PROPERTY_SET);
-}
-
-/**
- * util functions
- */
-
-function getColumnId(cohortGroupId) {
-    let count = 0;
-    for (let id of SELECTED_COHORT_MAP.values()) {
-        if (id.includes(cohortGroupId)) {
-            count++;
-        }
-    }
-
-    if (count > 0) {
-        return `${cohortGroupId}_${count}`;
-    }
-
-    return cohortGroupId;
-}
-
-function getColumnColor(columnId) {
-    if (!columnId) {
-        return;
-    }
-
-    let split = columnId.split("_");
-    if (split.length === 1) {
-        return "#22f2f2";
-    }
-
-    let num = split[1];
-    switch (num) {
-        case "1":
-            return "#8a6d3b";
-        case "2":
-            return "#f7ecb5";
-        case "3":
-            return "#dda0dd";
-        case "4":
-            return "#ffc0cb";
-        default:
-            console.log(`Undefined number: ${num}`);
-    }
 }

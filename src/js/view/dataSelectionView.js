@@ -4,21 +4,24 @@
 
 const DATA_SELECTION_GRID = document.getElementById("dataSelectionGrid");
 
-function changeDataSelectionViewVisibility(opacity = 1.0) {
-    document.getElementById("dataSelectionView").style.opacity = opacity;
+function showSelectionView() {
+    document.getElementById("dataSelectionView").style.display = "block";
+}
+function hideSelectionView() {
+    document.getElementById("dataSelectionView").removeAttribute("style");
 }
 
 function isDataSelectionViewVisible() {
-    return document.getElementById("dataSelectionView").style.opacity > 0;
+    return document.getElementById("dataSelectionView").hasAttribute("style");
 }
 
 /**
- * basic functions
+ * basic column functions
  */
 
 function addColumn(columnId) {
-    if (getColumn(columnId)) {
-        console.log(`columnId : ${columnId} is already existing!`);
+    if (isColumnIdExisting(columnId)) {
+        console.log(`addColumn - columnId : ${columnId} is already existing!`);
         return;
     }
 
@@ -28,19 +31,27 @@ function addColumn(columnId) {
     return DATA_SELECTION_GRID.appendChild(col);
 }
 
+function removeColumn(columnId) {
+    if (!isColumnIdExisting(columnId)) {
+        console.log(`removeColumn - columnId : ${columnId} is not existing!`);
+        return;
+    }
+
+    let element = getColumn(columnId);
+    return DATA_SELECTION_GRID.removeChild(element);
+}
+
 function getColumn(columnId) {
     return document.getElementById(`col_${columnId}`);
 }
 
-function removeColumn(columnId) {
-    let element = getColumn(columnId);
-    if (!element) {
-        return;
-    }
-
-    return DATA_SELECTION_GRID.removeChild(element);
+function isColumnIdExisting(columnId) {
+    return getColumn(columnId);
 }
 
+/**
+ * basic column item functions
+ */
 function addHeadItemToColumn(columnId, content) {
     let item = addItemToColumn(columnId, content);
     item.classList.add("column-head");
@@ -48,7 +59,6 @@ function addHeadItemToColumn(columnId, content) {
 }
 
 function addItemToColumn(columnId, content) {
-    let column = getColumn(columnId);
     let item = document.createElement("div");
     item.classList.add("row", "align-items-center");
 
@@ -58,13 +68,12 @@ function addItemToColumn(columnId, content) {
         item.appendChild(content);
     }
 
-    return column.appendChild(item);
+    return getColumn(columnId).appendChild(item);
 }
 
 /**
  * property column functions
  */
-
 function addPropertyColumn() {
     addColumn("properties");
     addHeadItemToColumn("properties", "Properties");
@@ -76,17 +85,19 @@ function removePropertyColumn() {
 
 function addPropertyItem(property) {
     let item = addItemToColumn("properties", property);
-    item.onclick = function (event) {
-        let cssText = null;
-        if (!item.style.cssText) {
-            cssText = "border-top: 3px solid #ff8c00; border-bottom: 3px solid #ff8c00;"
-        }
-        item.style.cssText = cssText;
+    item.setAttribute("id", `properties+${property}`);
+    item.onclick = event => onPropertyItemClick(property);
+}
 
-        highlightSelectedPropertyRow(property, cssText);
-        updateSelectedPropertySet(property);
-    };
-    return item;
+function onPropertyItemClick(property) {
+    if (isPropertySelected(property)) {
+        unhighlightPropertyRow(property);
+        removePropertyFromPropertySet(property);
+        return;
+    }
+
+    highlightPropertyRow(property);
+    addPropertyToPropertySet(property);
 }
 
 /**
@@ -97,19 +108,18 @@ function drawCohortColumn(columnId, columnName, columnColor) {
     let column = addColumn(columnId);
     let item = addHeadItemToColumn(columnId, columnName);
     item.classList.add("justify-content-center");
-    item.style.cssText = `color: ${columnColor}`;
+    item.style.cssText = `background-color: ${columnColor}; border-left: 0.5px solid #ffffff;`;
     return column;
 }
 
 function removeCohortColumn(columnId) {
-    if (!columnId) {
-        return;
-    }
     return removeColumn(columnId);
 }
 
-function drawCohortColumnItem(columnId, itemId, content) {
-    let item = addItemToColumn(columnId, content);
+function drawCohortColumnItem(columnId, itemId, width) {
+    let rect = createDataAvailabilityBar(150, 25, width, 25);
+
+    let item = addItemToColumn(columnId, rect);
     item.classList.add("justify-content-center");
     item.setAttribute("id", itemId);
     return item;
@@ -118,36 +128,43 @@ function drawCohortColumnItem(columnId, itemId, content) {
 /**
  * create availability bar
  */
-
 function createDataAvailabilityBar(baseWidth, baseHeight, width, height) {
     let ns = "http://www.w3.org/2000/svg";
 
     let svg = document.createElementNS(ns, "svg");
     svg.setAttribute("width", `${baseWidth}`);
     svg.setAttribute("height", `${baseHeight}`);
-    svg.style.cssText = "background: #d3d3d3";
+    svg.style.cssText = "background: #afafaf";
 
     let rect = document.createElementNS(ns, "rect");
     rect.setAttribute("x", "0");
     rect.setAttribute("y", "0");
     rect.setAttribute("width", `${width}`);
     rect.setAttribute("height", `${height}`);
-    rect.setAttribute("fill", "#5cb3fd");
+    rect.setAttribute("fill", "#11a1f1");
     svg.appendChild(rect);
 
     return svg;
 }
 
 /**
- * event handler
+ * util functions
  */
+function highlightColumnItems(columnId, property) {
+    let container = getColumn(columnId);
+    highlightPropertyRow(property, container);
+}
 
-function highlightSelectedPropertyRow(property, cssText, columnId) {
-    let container = DATA_SELECTION_GRID;
-    if (columnId) {
-        container = getColumn(columnId);
-    }
+function highlightPropertyRow(property, container = DATA_SELECTION_GRID) {
+    let cssText = "background-color: #ffffbf;";
+    updatePropertyRowOnSelectionChange(container, property, cssText);
+}
 
+function unhighlightPropertyRow(property, container = DATA_SELECTION_GRID) {
+    updatePropertyRowOnSelectionChange(container, property, null);
+}
+
+function updatePropertyRowOnSelectionChange(container, property, cssText) {
     let divs = container.getElementsByTagName("div");
     for (let d of divs) {
         if (d.id.includes(`+${property}`)) {

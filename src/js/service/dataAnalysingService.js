@@ -2,34 +2,47 @@
  * Created by Mike on 17-Apr-17.
  */
 
+let COHORT_MAP = new Map();
+let PROPERTY_SET = new Set();
+
 function updateDataAnalysingView(cohortNodeMap, propertySet) {
     if (cohortNodeMap.size === 0 || propertySet.size === 0) {
-        clearCharts();
+        hideAnalysingView();
         return;
     }
 
-    initCharts();
+    COHORT_MAP = new Map(cohortNodeMap.entries());
+    PROPERTY_SET = new Set(propertySet.values());
 
-    if (propertySet.size === 1) {
-        let property = propertySet.values().next().value;
-        let dataArray = composeDataArraysByCohorts(cohortNodeMap, property);
-        let title = `Property : ${property}`;
-        drawBoxPlotChart(dataArray, title);
+    showAnalysingView();
+}
+
+function getBoxPlotChartData() {
+    let dataArray = null;
+    let title = null;
+    if (PROPERTY_SET.size === 1) {
+        let property = PROPERTY_SET.values().next().value;
+        dataArray = composeDataArraysByCohorts(COHORT_MAP, property);
+        title = `Property : ${property}`;
     }
 
-    if (propertySet.size > 1) {
-        let dataArray = composeDataArraysByProperties(cohortNodeMap, propertySet);
-        let title = `Multiple Cohorts`;
-        drawBoxPlotChart(dataArray, title);
+    if (PROPERTY_SET.size > 1) {
+        dataArray = composeDataArraysByProperties(COHORT_MAP, PROPERTY_SET);
+        title = `Multiple Cohorts`;
+    }
+    drawBoxPlotChart(dataArray, title);
+}
+
+function getScatterPlotChartData() {
+    if (PROPERTY_SET.size !== 2) {
+        throw new ChartDataError("Scatter Plot Chart can only be shown when two variables are selected!");
     }
 
-    if (propertySet.size === 2) {
-        let properties = propertySet.values();
-        let propertyX = properties.next().value;
-        let propertyY = properties.next().value;
-        let dataArray = composeDataArraysForScatterPlot(cohortNodeMap, propertyX, propertyY);
-        drawScatterPlotChart(dataArray, propertyX, propertyY);
-    }
+    let properties = PROPERTY_SET.values();
+    let propertyX = properties.next().value;
+    let propertyY = properties.next().value;
+    let dataArray = composeDataArraysForScatterPlot(COHORT_MAP, propertyX, propertyY);
+    drawScatterPlotChart(dataArray, propertyX, propertyY);
 }
 
 /**
@@ -59,7 +72,7 @@ function composeDataArraysByCohorts(cohortNodeMap, property) {
     const array = [];
     for (let c of cohortNodeMap.keys()) {
         let a = composeDataArrayWithOneProperty(c.dataset, property);
-        a.unshift(c.groupId.replace(/cohort/i, '').replace(/-/i, ' '));
+        a.unshift(getCohortGroupName(c.groupId));
         array.push(a);
     }
 
