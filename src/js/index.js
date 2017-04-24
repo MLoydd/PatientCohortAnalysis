@@ -8,7 +8,6 @@ const inputQuery = document.getElementById("inputQuery");
 
 function initApp(dataset) {
     initDataQueryingService(dataset);
-    //initAnalysingCharts();
 }
 
 /**

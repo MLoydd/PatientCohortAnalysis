@@ -4,8 +4,23 @@
 
 const SELECTED_COHORT_MAP = new Map();
 function addCohortNodeToDataSelection(cohort, nodeColor) {
+    if (cohort.property === "Patients") {
+        if (isBaseCohortAlreadySelected(cohort)) {
+            throw new DuplicateError(`An "All Patient" cohort has already been selected!`)
+        }
+    }
     let columnId = addCohortToSelectionGrid(cohort, nodeColor);
     updatePropertySelectionOnAddedColumn(columnId);
+    return true;
+}
+
+function isBaseCohortAlreadySelected(cohort) {
+    for (let c of SELECTED_COHORT_MAP.keys()) {
+        if (c.property.toLowerCase() === cohort.property.toLowerCase()) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /**

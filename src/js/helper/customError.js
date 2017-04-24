@@ -22,3 +22,11 @@ class ChartDataError extends Error {
         this.name = "ChartDataError";
     }
 }
+
+class DuplicateError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = "ChartDataError";
+    }
+}
+

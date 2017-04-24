@@ -46,7 +46,7 @@ function getTypeOfValue(value) {
 }
 
 function parseValueToType(value) {
-    if (!value || value === "na" || value === "null") {
+    if (value === "na" || value === "null" || value === "") {
         return null;
     }
 

@@ -2,6 +2,15 @@
  * Created by Mike on 17-Apr-17.
  */
 
+const SERIES = {
+    0: {pointShape: 'circle'},
+    1: {pointShape: 'triangle'},
+    2: {pointShape: 'star'},
+    3: {pointShape: 'square'},
+    4: {pointShape: 'polygon'},
+    5: {pointShape: 'diamond'}
+};
+
 let COHORT_MAP = new Map();
 let PROPERTY_SET = new Set();
 
@@ -38,11 +47,18 @@ function getScatterPlotChartData() {
         throw new ChartDataError("Scatter Plot Chart can only be shown when two variables are selected!");
     }
 
-    let properties = PROPERTY_SET.values();
-    let propertyX = properties.next().value;
-    let propertyY = properties.next().value;
-    let dataArray = composeDataArraysForScatterPlot(COHORT_MAP, propertyX, propertyY);
-    drawScatterPlotChart(dataArray, propertyX, propertyY);
+    let cohorts = Array.from(COHORT_MAP.keys());
+    let properties = Array.from(PROPERTY_SET);
+    let dataArray = composeDataArraysForScatterPlot(cohorts, properties[0], properties[1]);
+
+    let a = [];
+    let s = {};
+    for (let i = 0; i < cohorts.length; i++) {
+        a[i] = cohorts[i].groupId;
+        s[i] = SERIES[i];
+    }
+
+    drawScatterPlotChart(dataArray, properties[0], properties[1], s, a);
 }
 
 /**
@@ -110,10 +126,10 @@ function composeBoxPlotRowArray(dataArray) {
 /**
  * scatter plot chart functions
  */
-function composeDataArraysForScatterPlot(cohortNodeMap, propertyX, propertyY) {
+function composeDataArraysForScatterPlot(cohorts, propertyX, propertyY) {
     const dataArray = [];
-    for (let c of cohortNodeMap.keys()) {
-        let a = composeDataArrayWithTwoProperty(c.dataset, propertyX, propertyY);
+    for (let i = 0; i < cohorts.length; i++) {
+        let a = composeDataArrayWithTwoProperty(cohorts[i].dataset, propertyX, propertyY, cohorts.length, i + 1);
         Array.prototype.push.apply(dataArray, a);
     }
 
@@ -132,12 +148,13 @@ function composeDataArrayWithOneProperty(dataset, property) {
     return dataArray;
 }
 
-function composeDataArrayWithTwoProperty(dataset, propertyX, propertyY) {
+function composeDataArrayWithTwoProperty(dataset, propertyX, propertyY, cohortsLength, index) {
     const dataArray = [];
     for (let p of dataset) {
-        let x = p.data.get(propertyX);
-        let y = p.data.get(propertyY);
-        dataArray.push([x, y]);
+        let a = new Array(cohortsLength + 1).fill(null);
+        a[0] = p.data.get(propertyX);
+        a[index] = p.data.get(propertyY);
+        dataArray.push(a);
     }
     return dataArray;
 }

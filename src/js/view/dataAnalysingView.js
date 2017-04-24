@@ -3,14 +3,15 @@
  */
 
 google.charts.load('current', {'packages': ['corechart']});
+google.charts.setOnLoadCallback(initCharts);
 
 let boxPlotChart = null;
 let scatterPlotChart = null;
 
-window.onload = () => {
+function initCharts() {
     boxPlotChart = new google.visualization.LineChart(document.getElementById('chart'));
     scatterPlotChart = new google.visualization.ScatterChart(document.getElementById('chart'));
-};
+}
 
 function showAnalysingView() {
     clearCharts();
@@ -46,11 +47,17 @@ function showScatterPlotChart() {
     } catch (e) {
         if (e instanceof ChartDataError) {
             document.getElementById("chartMessage").innerHTML = e.message;
+        } else {
+            throw e;
         }
     }
 }
 
 function clearCharts() {
+    if (!boxPlotChart && !scatterPlotChart) {
+        alert("Google Charts Packages couldn't get loaded. Please refreseh!")
+    }
+
     boxPlotChart.clearChart();
     scatterPlotChart.clearChart();
     document.getElementById("chartMessage").innerHTML = "";
@@ -60,7 +67,7 @@ function clearCharts() {
  * scatter plot chart functions
  */
 
-function drawScatterPlotChart(dataArray, hAxis, vAxis) {
+function drawScatterPlotChart(dataArray, hAxis, vAxis, series, columns) {
 
     const options = {
         title: `Comparision : ${hAxis} to ${vAxis}`,
@@ -68,12 +75,15 @@ function drawScatterPlotChart(dataArray, hAxis, vAxis) {
         hAxis: {title: hAxis},
         vAxis: {title: vAxis},
         tooltip: {isHtml: true},
-        legend: 'none'
+        legend: {position: 'right', textStyle: {color: 'black', fontSize: 16}},
+        series: series
     };
 
     const data = new google.visualization.DataTable();
     data.addColumn("number", hAxis);
-    data.addColumn("number", vAxis);
+    for (let c of columns) {
+        data.addColumn("number", c);
+    }
     data.addRows(dataArray);
 
     scatterPlotChart.draw(data, options);

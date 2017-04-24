@@ -98,7 +98,16 @@ function onCohortNodeClickHandler(cohortNode) {
     }
 
     let nodeColor = getCohortNodeColor(cohortNode.cohort.groupId);
-    addCohortNodeToDataSelection(cohortNode.cohort, nodeColor);
+    try {
+        addCohortNodeToDataSelection(cohortNode.cohort, nodeColor);
+    } catch (e) {
+        if (e instanceof DuplicateError) {
+            alert(e.message);
+        } else {
+            throw e;
+        }
+        return;
+    }
     markElement(cohortNode.nodeConfig.id, `fill: ${nodeColor}`);
 }
 function onCohortNodeMouseOverHandler(cohortNode) {
