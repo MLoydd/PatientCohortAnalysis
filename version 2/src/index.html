@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Patient Record Visualisation - Version 2</title>
+
+    <!-- Google Charts Library -->
+    <link rel="stylesheet" href="../../node_modules/bootstrap/dist/css/bootstrap.css">
+    <link rel="stylesheet" href="css/main.css">
+
+    <!-- External Libraries -->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="../../lib/d3js/d3.js"></script>
+</head>
+<body>
+
+<div id="controller">
+    <div id="queryContainer" class="query-container">
+        <input id="inputProperty" onkeydown="queryInputFieldKeyDownHandler()" title="property" placeholder="property">
+        <input id="inputQuery" onkeydown="queryInputFieldKeyDownHandler()" title="query" placeholder="query">
+        <button id="btnFilter" onclick="applyFilterOnClickHandler()">Apply Filter</button>
+    </div>
+
+    <img id="triangleIcon" src="img/triangle_icon.svg" class="triangle-hover" onclick="triangleIconOnClickHandler()"
+         onmouseout="triangleIconMouseOutHandler()" onmouseover="triangleIconMouseOverHandler()">
+    <img id="closingIcon" src="img/closing_icon.svg" class="closing-hover" onclick="closingIconOnClickHandler()"
+         onmouseout="closingIconMouseOutHandler()" onmouseover="closingIconMouseOverHandler()">
+</div>
+
+<section id="dataQueryingView" class="container" style="min-width: 100%; margin-top: 30px;">
+    <div id="dataQueryingGrid" class="row" style="height: 500px;">
+        <div class="col-md-2"></div>
+    </div>
+</section>
+
+<section id="dataSelectionView" class="container">
+    <div id="dataSelectionGrid" class="row"></div>
+</section>
+
+<section id="dataAnalysingView" class="container">
+    <div class="row" style="margin-top: 30px">
+        <button id="boxPlotBtn" onclick="showBoxPlotChart()" disabled>Box Plot Chart</button>
+        <button id="scatterPlotBtn" onclick="showScatterPlotChart()">Scatter Plot Chart</button>
+    </div>
+
+    <div id="chart"></div>
+    <div style="margin: 50px; font-size: 20px; text-align: center">
+        <b id="chartMessage"></b>
+    </div>
+</section>
+
+<script src="js/helper/linkedList.js"></script>
+<script src="js/helper/customError.js"></script>
+<script src="js/util/util.js"></script>
+
+<script src="js/modal/cohort.js"></script>
+
+<script src="js/service/dataQueryingService.js"></script>
+<script src="js/service/dataSelectionService.js"></script>
+<script src="js/service/dataAnalysingService.js"></script>
+
+<script src="js/view/dataQueryingView.js"></script>
+<script src="js/view/dataSelectionView.js"></script>
+<script src="js/view/dataAnalysingView.js"></script>
+<script src="js/index.js"></script>
+
+<script src="js/persistence/dao.js"></script>
+
+</body>
+</html>

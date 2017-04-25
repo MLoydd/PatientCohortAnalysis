@@ -1,0 +1,143 @@
+.col-md-2 {
+    flex: 0 0 300px;
+    max-width: 300px;
+}
+
+/* */
+.baseCohortNode {
+
+}
+
+.rightTriangle {
+}
+
+.bottomTriangle {
+}
+
+.colItem {
+}
+
+/* */
+
+#divQuery {
+    display: flex;
+    flex-direction: column;
+}
+
+.node line {
+    stroke: #808080;
+    stroke-width: 0.5px;
+}
+
+.node rect {
+    shape-rendering: crispEdges;
+    fill: #efefdf;
+}
+
+.node text {
+    font-size: 16px;
+    alignment-baseline: central;
+}
+
+.node-hover {
+    shape-rendering: crispEdges;
+    fill: #FF0000;
+    stroke: #000000;
+}
+
+.node path {
+    shape-rendering: crispEdges;
+    fill: #efefdf;
+    fill-opacity: .4;
+}
+
+.query-container {
+    z-index: 7;
+    width: 150px;
+    flex-direction: column;
+
+    display: none;
+    position: absolute;
+}
+
+.triangle-hover {
+    width: 60px;
+    height: 30px;
+
+    display: none;
+    position: absolute;
+    opacity: 0.3;
+}
+
+.triangle-hover:hover {
+    opacity: 1.0;
+}
+
+/* closing icon */
+.closing-hover {
+    width: 20px;
+    height: 20px;
+
+    display: none;
+    position: absolute;
+    opacity: 0.3;
+}
+
+.closing-hover:hover {
+    opacity: 1.0;
+}
+
+/* Data Selection View */
+#dataSelectionView {
+    display: none;
+    min-width: 100%;
+
+    background: #fdfdfd;
+    border-style: outset none inset none;
+    font-size: 20px;
+    margin-bottom: 30px;
+}
+
+#dataSelectionGrid .row {
+    height: 35px;
+    border-bottom: 0.5px solid #efefef;
+}
+
+#dataSelectionGrid .row:nth-child(odd) {
+    background-color: #f9f9f9;
+}
+
+.column-head {
+    cursor: default !important;
+    font-weight: bold;
+    border-right-color: #000000 !important;
+}
+
+#dataSelectionGrid #col_properties {
+    padding-left: 30px;
+}
+
+#dataSelectionGrid #col_properties .row {
+    cursor: pointer;
+}
+
+#dataAnalysingView {
+    display: none;
+}
+
+#dataAnalysingView .row button {
+    margin-right: 20px;
+
+    display: inline-block;
+    text-align: center;
+    border: none;
+    border-bottom: 0.5px solid #2aabd2;
+    cursor: pointer;
+    background-color: #ffffff;
+    margin-top: 20px;
+}
+
+#dataAnalysingView .row button:disabled {
+    cursor: default;
+    border-bottom: none;
+}
