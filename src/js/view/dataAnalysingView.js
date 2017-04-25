@@ -55,7 +55,8 @@ function showScatterPlotChart() {
 
 function clearCharts() {
     if (!boxPlotChart && !scatterPlotChart) {
-        alert("Google Charts Packages couldn't get loaded. Please refreseh!")
+        alert("Google Charts Packages couldn't get loaded. Please refreseh!");
+        throw new LoadingError("Google Charts Packages couldn't get loaded. Please refreseh!");
     }
 
     boxPlotChart.clearChart();
@@ -71,6 +72,7 @@ function drawScatterPlotChart(dataArray, hAxis, vAxis, series, columns) {
 
     const options = {
         title: `Comparision : ${hAxis} to ${vAxis}`,
+        width: 1200,
         height: 750,
         hAxis: {title: hAxis},
         vAxis: {title: vAxis},
@@ -97,6 +99,7 @@ function drawBoxPlotChart(dataArray, title) {
 
     const options = {
         title: `Box Plot on ${title}`,
+        width: 1200,
         height: 750,
         hAxis: {gridlines: {color: '#fff'}},
         lineWidth: 0,

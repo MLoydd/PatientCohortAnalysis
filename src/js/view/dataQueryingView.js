@@ -104,10 +104,9 @@ function onCohortNodeClickHandler(cohortNode) {
     } catch (e) {
         if (e instanceof DuplicateError) {
             alert(e.message);
-        } else {
-            throw e;
+            return;
         }
-        return;
+        throw e;
     }
     markElement(cohortNode.nodeConfig.id, `fill: ${nodeColor}`);
 }
@@ -125,9 +124,8 @@ function onCohortNodeMouseOverHandler(cohortNode) {
     }
 }
 
-function onCohortGroupInputChangeHandler(inputElement, cohortGroupId) {
-    let text = inputElement.property("value");
-
+function onCohortGroupInputChangeHandler(/*inputElement, cohortGroupId*/) {
+    //let text = inputElement.property("value");
     // TODO change cohortGroupID of the complete cohort group
 }
 

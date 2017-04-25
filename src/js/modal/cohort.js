@@ -53,10 +53,3 @@ class Patient {
     }
 
 }
-
-class Datum {
-    constructor(property, value) {
-        this.property = property;
-        this.value = value;
-    }
-}

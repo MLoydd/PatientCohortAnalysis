@@ -11,6 +11,14 @@
 .node rect {
     shape-rendering: crispEdges;
     fill: #efefdf;
+    cursor: pointer;
+}
+
+.node text {
+    font-size: 16px;
+    text-anchor: middle;
+    alignment-baseline: central;
+    cursor: pointer;
 }
 
 .node-hover {
@@ -78,11 +86,13 @@ foreignObject body input {
     border-bottom: 0.5px solid #808080;
 }
 
+/*
 #dataQueryingView text {
     font-size: 16px;
     text-anchor: middle;
     alignment-baseline: central;
 }
+*/
 
 /* Data Selection View */
 #dataSelectionView {
@@ -90,17 +100,16 @@ foreignObject body input {
     min-width: 100%;
 
     background: #fdfdfd;
-    border-top-style: outset;
+    border-style: outset none inset none;
     font-size: 20px;
-    margin: 0 10px 30px 10px;
+    padding-left: 25px;
+    margin-bottom: 30px;
 }
 
 #dataSelectionGrid .row {
     height: 35px;
     padding-left: 5px;
-    border-bottom-style: solid;
-    border-bottom-width: 0.5px;
-    border-color: #dfdfdf;
+    border-bottom: 0.5px solid #efefef;
 }
 
 #dataSelectionGrid .row:nth-child(odd) {
@@ -108,8 +117,13 @@ foreignObject body input {
 }
 
 .column-head {
+    cursor: default !important;
     font-weight: bold;
     border-right-color: #000000 !important;
+}
+
+#dataSelectionGrid #col_properties .row {
+    cursor: pointer;
 }
 
 #dataAnalysingView {
@@ -121,8 +135,14 @@ foreignObject body input {
 
     display: inline-block;
     text-align: center;
-    text-decoration: none;
-    padding: 15px;
     border: none;
-    border-bottom: solid 0.5px #2aabd2;
+    border-bottom: 0.5px solid #2aabd2;
+    cursor: pointer;
+    background-color: #ffffff;
+    margin-top: 20px;
+}
+
+#dataAnalysingView .row button:disabled {
+    cursor: default;
+    border-bottom: none;
 }

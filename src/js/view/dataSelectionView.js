@@ -167,8 +167,11 @@ function unhighlightPropertyRow(property, container = DATA_SELECTION_GRID) {
 function updatePropertyRowOnSelectionChange(container, property, cssText) {
     let divs = container.getElementsByTagName("div");
     for (let d of divs) {
-        if (d.id.includes(`+${property}`)) {
-            d.style.cssText = cssText;
+        let split = d.id.split("+");
+        if (split.length > 1) {
+            if (split[1] === property) {
+                d.style.cssText = cssText;
+            }
         }
     }
 }
