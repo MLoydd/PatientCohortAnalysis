@@ -20,6 +20,7 @@ function drawCohortGroup(cohortGroupId, clientRect) {
     let cohortGroupText = getCohortGroupName(cohortGroupId);
 
     appendGroup(cohortGroupId);
+    drawDivider(cohortGroupId, calculateDividerClientRectLeft());
     let input = appendInput(cohortGroupId, clientRect.left, clientRect.top - 40, cohortGroupText);
     input.on("blur", () => onCohortGroupInputChangeHandler(input, cohortGroupId));
 }

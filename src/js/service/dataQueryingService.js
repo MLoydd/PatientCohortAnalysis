@@ -62,7 +62,6 @@ function findCohortInCohortGroupMap(dataset) {
 function updateQueryingView(property, query, dataset) {
     let cohortGroupId = selectedCohortNode.cohort.groupId;
     if (selectedCohortNode.next) {
-        drawDivider(cohortGroupId, calculateDividerClientRectLeft(cohortGroupId));
         cohortGroupId = copyCohortGroup(selectedCohortNode);
     }
 
@@ -138,8 +137,8 @@ function calculateCohortNodeClientRectTop(cohortGroupId) {
     return BASE_COHORT_NODE.y + length * INTERSPACE.dy;
 }
 
-function calculateDividerClientRectLeft(cohortGroupId) {
-    let size = COHORT_GROUP_MAP.size;
+function calculateDividerClientRectLeft() {
+    let size = COHORT_GROUP_MAP.size - 1;
     return BASE_COHORT_NODE.x + size * (RANGE.max + INTERSPACE.dx) - INTERSPACE.dx / 2;
 }
 
