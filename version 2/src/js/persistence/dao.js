@@ -88,6 +88,10 @@ function getAnalysableProperties() {
     return set;
 }
 
+function getPropertiesMap() {
+    return PROPERTIES_MAP;
+}
+
 function findProperty(property) {
     for (let p of PROPERTIES_MAP.keys()) {
         if (p === property) {

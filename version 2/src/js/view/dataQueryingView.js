@@ -3,13 +3,11 @@
  */
 
 const rectInterspace = 30;
-
-const BASE_COHORT_NODE = {x: 50, y: 70, id: "baseCohortNode", text: "All Patients"};
-const DIVIDER = {y1: BASE_COHORT_NODE.y, y2: 300};
+const BASE_COHORT_NODE = {id: "baseCohortNode", text: "All Patients"};
 
 function addCohortGroupColumn(cohortGroupId) {
     let id = trimAllWhiteSpace(cohortGroupId);
-    return d3.select("#dataQueryingGrid").append("div").attr("id", id).attr("class", "col-md-2");
+    return d3.select("#dataQueryingGrid").append("div").attr("id", id).attr("class", "col-2");
 }
 
 function getCohortGroupColumn(cohortGroupId) {
@@ -87,14 +85,15 @@ function drawText(nodeGroupId, text, clientRect) {
 
 function drawRightTriangle(nodeGroupId, clientRect) {
     let x1 = clientRect.left + clientRect.width;
-    let y1 = clientRect.top + clientRect.height;
+    let y1 = clientRect.top + clientRect.height - 5;
     let x2 = clientRect.left + clientRect.width;
-    let y2 = clientRect.top;
-    let x3 = clientRect.left + clientRect.width + 20;
+    let y2 = clientRect.top + 5;
+    let x3 = clientRect.left + clientRect.width + 15;
     let y3 = clientRect.top + clientRect.height / 2;
 
     let p = `${x1},${y1} ${x2},${y2} ${x3},${y3}`;
-    return getNodeGroup(nodeGroupId).append("polygon").attr("points", p).style("fill", "#5cb85c").attr("class", "rightTriangle");
+    return getNodeGroup(nodeGroupId).append("polygon").attr("points", p).style("fill", "#5cb85c")
+        .attr("class", "rightTriangle");
 }
 
 function removeRightTriangle(nodeGroupId) {
@@ -102,15 +101,16 @@ function removeRightTriangle(nodeGroupId) {
 }
 
 function drawBottomTriangle(nodeGroupId, clientRect) {
-    let x1 = clientRect.left + clientRect.width / 2 - 30;
+    let x1 = clientRect.left + clientRect.width / 2 - 25;
     let y1 = clientRect.top + clientRect.height;
-    let x2 = clientRect.left + clientRect.width / 2 + 30;
+    let x2 = clientRect.left + clientRect.width / 2 + 25;
     let y2 = clientRect.top + clientRect.height;
     let x3 = clientRect.left + clientRect.width / 2;
-    let y3 = clientRect.top + clientRect.height + 30;
+    let y3 = clientRect.top + clientRect.height + 25;
 
     let p = `${x1},${y1} ${x2},${y2} ${x3},${y3}`;
-    return getNodeGroup(nodeGroupId).append("polygon").attr("points", p).style("fill", "#5cb85c").attr("class", "bottomTriangle");
+    return getNodeGroup(nodeGroupId).append("polygon").attr("points", p).style("fill", "#5cb85c")
+        .attr("class", "bottomTriangle");
 }
 
 function removeBottomTriangle(nodeGroupId) {
@@ -233,4 +233,39 @@ function getCohortNodeColor(cohortGroupId) {
         default:
             return "#c9c9ff";
     }
+}
+
+function addItemToPropertiesInformationColumn(propertyName, type) {
+    let row = d3.select("#col_propertiesInformation").append("div").attr("class", "row align-items-center");
+    row.append("div").attr("class", "col-7").html(propertyName);
+
+    let item = row.append("div").attr("class", "col-5 columnPropertyType");
+    item.append("span").attr("class", "dataTypeTooltip").html(type)
+        .append("span").attr("class", "tooltipText").html(getToolTipText(type));
+
+    let dropdown = item.append("span").attr("class", "dropdownSelection");
+    let icon = dropdown.append("img").attr("src", "img/dropdown_icon.svg").attr("class", "dropdownIcon");
+    dropdown.append("div").attr("id", "dropdownBlock").attr("class", "dropdown-content")
+        .append("span").html(getOtherTypes(type));
+    icon.on("click", () => {
+        document.getElementById("dropdownBlock").classList.toggle("show");
+    })
+}
+
+function getToolTipText(type) {
+    switch (type) {
+        case "number":
+            return `possible filter operators:<br>< x, <= x, >= x, > x, = x, x - y<br>e.g. <= 40, 30 - 60`;
+        case "string":
+            return `possible filter operators:<br>use plain text without any operators`;
+        default:
+            return "undefined";
+    }
+}
+
+function getOtherTypes(type) {
+    if (type === "number") {
+        return "string";
+    }
+    return "number";
 }

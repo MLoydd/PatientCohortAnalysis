@@ -59,8 +59,6 @@ function addCohortToDataSelection(cohort) {
 }
 
 function showGrid() {
-    addPropertyColumn();
-
     let properties = getAnalysableProperties();
     for (let p of properties) {
         addPropertyItem(p);

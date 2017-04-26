@@ -10,8 +10,9 @@ const COHORT_GROUP_MAP = new Map();
 const QUERYING_SCALE = d3.scaleLinear();
 
 function initDataQueryingService(dataset) {
-    //initDrawing();
     QUERYING_SCALE.domain([0, dataset.size]).range([RANGE.min, RANGE.max]);
+
+    populatePropertiesInformationColumn();
 
     let cohortGroupId = createNewCohortGroup();
     let cohortNode = composeCohortNode("Patients", "*", dataset, cohortGroupId, BASE_COHORT_NODE.text, BASE_COHORT_NODE.id);
@@ -128,19 +129,9 @@ function composeNodeClientRect(cohortGroupId, datasetSize) {
     return new ClientRect(left, top, width, rectHeight);
 }
 
-function calculateCohortNodeClientRectLeft(cohortGroupId) {
-    let count = getIndexOfKeyInMap(COHORT_GROUP_MAP, cohortGroupId);
-    return BASE_COHORT_NODE.x + count * (RANGE.max + INTERSPACE.dx);
-}
-
 function calculateCohortNodeClientRectTop(cohortGroupId) {
     let length = COHORT_GROUP_MAP.get(cohortGroupId).length;
     return length * INTERSPACE.dy;
-}
-
-function calculateDividerClientRectLeft() {
-    let size = COHORT_GROUP_MAP.size - 1;
-    return BASE_COHORT_NODE.x + size * (RANGE.max + INTERSPACE.dx) - INTERSPACE.dx / 2;
 }
 
 /**
@@ -201,5 +192,12 @@ function highlightChildrenOfSelectedCohortNode(cssText) {
     while (nodeCohort) {
         markElement(nodeCohort.nodeConfig.id, cssText);
         nodeCohort = nodeCohort.next;
+    }
+}
+
+function populatePropertiesInformationColumn() {
+    let map = getPropertiesMap();
+    for (let [k, v] of map) {
+        addItemToPropertiesInformationColumn(k, v);
     }
 }

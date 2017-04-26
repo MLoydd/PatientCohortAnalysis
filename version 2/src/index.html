@@ -29,12 +29,25 @@
 
 <section id="dataQueryingView" class="container" style="min-width: 100%; margin-top: 30px;">
     <div id="dataQueryingGrid" class="row" style="height: 500px;">
-        <div class="col-md-2"></div>
+        <div class="col-2">
+            <div class="row" style="height: 40px; border-right: 2.5px solid #efefef;">
+                <div class="col-12" style="display: inline-flex">
+                    <div class="align-items-center propertiesInformationTitle">Properties Information</div>
+                </div>
+            </div>
+            <div class="row" style="height: 460px;">
+                <div id="col_propertiesInformation" class="col-12 scrollbar"></div>
+            </div>
+        </div>
     </div>
 </section>
 
 <section id="dataSelectionView" class="container">
-    <div id="dataSelectionGrid" class="row"></div>
+    <div id="dataSelectionGrid" class="row">
+        <div id="col_properties" class="col-2 propertiesColumn">
+            <div class="row align-items-center column-head">Properties</div>
+        </div>
+    </div>
 </section>
 
 <section id="dataAnalysingView" class="container">

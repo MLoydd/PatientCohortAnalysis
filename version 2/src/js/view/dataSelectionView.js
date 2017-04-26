@@ -27,7 +27,7 @@ function addColumn(columnId) {
 
     let col = document.createElement("div");
     col.setAttribute("id", columnId);
-    col.classList.add("col-md-2");
+    col.classList.add("col-2");
     return DATA_SELECTION_GRID.appendChild(col);
 }
 
@@ -83,11 +83,6 @@ function addItemToColumn(columnId, content) {
 /**
  * property column functions
  */
-function addPropertyColumn() {
-    addColumn("col_properties");
-    addHeadItemToColumn("col_properties", "Properties");
-}
-
 function addPropertyItem(property) {
     let item = addItemToColumn("col_properties", property);
     item.setAttribute("id", `properties+${property}`);
