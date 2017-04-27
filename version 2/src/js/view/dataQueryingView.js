@@ -2,7 +2,7 @@
  * Created by Mike on 05-Apr-17.
  */
 
-const rectInterspace = 30;
+const RECT_INTERSPACE = 10;
 const BASE_COHORT_NODE = {id: "baseCohortNode", text: "All Patients"};
 
 function addCohortGroupColumn(cohortGroupId) {
@@ -43,34 +43,47 @@ function drawBaseNodeGroup(cohortNode) {
 
 function drawCohortNodeGroup(cohortNode) {
     addNodeGroupToCohortGroup(cohortNode.nodeConfig.nodeGroupId, cohortNode.cohort.groupId);
-    drawPath(cohortNode.nodeConfig.nodeGroupId, cohortNode.nodeConfig.clientRect);
+    drawLinkPath(cohortNode.nodeConfig.nodeGroupId, cohortNode.nodeConfig.clientRect);
     drawCohortNodeElements(cohortNode);
 }
 
 function drawCohortNodeElements(cohortNode) {
     let nodeConfig = cohortNode.nodeConfig;
 
+    drawBaseRectOutline(nodeConfig.nodeGroupId, nodeConfig.clientRect);
     drawRect(nodeConfig.nodeGroupId, nodeConfig.id, nodeConfig.clientRect);
     drawText(nodeConfig.nodeGroupId, nodeConfig.text, nodeConfig.clientRect);
 
-    let bottomTriangle = drawBottomTriangle(nodeConfig.nodeGroupId, nodeConfig.clientRect);
-    bottomTriangle.on("click", () => onBottomTriangleClickHandler(cohortNode));
+    drawBottomTriangle(nodeConfig.nodeGroupId, nodeConfig.clientRect)
+        .on("click", () => onBottomTriangleClickHandler(cohortNode));
 
-    if (isBaseCohortNode(nodeConfig.id)) {
-        let rightTriangle = drawRightTriangle(nodeConfig.nodeGroupId, nodeConfig.clientRect);
-        rightTriangle.on("click", () => onRightTriangleClickHandler(cohortNode));
+    addRightTriangle(cohortNode);
+
+    if (!isBaseCohortNode(nodeConfig.id)) {
+        drawCloseIcon(nodeConfig.nodeGroupId, nodeConfig.clientRect).on("click", () => {
+            removeCohortNodeAndItsDependencies(cohortNode);
+        }).on("mouseover", () => {
+            changeStrokeOpacityOfCohortNodeDescendantsCloseIcon(cohortNode, 1.0);
+        }).on("mouseout", () => {
+            changeStrokeOpacityOfCohortNodeDescendantsCloseIcon(cohortNode, null);
+        });
     }
 
     addCohortNodeToSelection(cohortNode);
 }
 
 function isBaseCohortNode(nodeId) {
-    return nodeId.includes(`${BASE_COHORT_NODE.id}`)
+    return nodeId === BASE_COHORT_NODE.id;
 }
 
 function getNodeGroup(groupName) {
     let g = trimAllWhiteSpace(groupName);
     return d3.select(`#${g}`);
+}
+
+function drawBaseRectOutline(nodeGroupId, clientRect) {
+    return getNodeGroup(nodeGroupId).append("rect").attr("x", clientRect.left).attr("y", clientRect.top)
+        .attr("width", RANGE.max).attr("height", clientRect.height).style("fill", "#efefef");
 }
 
 function drawRect(nodeGroupId, id, clientRect) {
@@ -83,17 +96,21 @@ function drawText(nodeGroupId, text, clientRect) {
         .attr("x", clientRect.left + 10).attr("y", clientRect.top + clientRect.height / 2);
 }
 
+function addRightTriangle(cohortNode) {
+    drawRightTriangle(cohortNode.nodeConfig.nodeGroupId, cohortNode.nodeConfig.clientRect)
+        .on("click", () => onRightTriangleClickHandler(cohortNode));
+}
+
 function drawRightTriangle(nodeGroupId, clientRect) {
-    let x1 = clientRect.left + clientRect.width;
-    let y1 = clientRect.top + clientRect.height - 5;
-    let x2 = clientRect.left + clientRect.width;
-    let y2 = clientRect.top + 5;
-    let x3 = clientRect.left + clientRect.width + 15;
+    let x1 = clientRect.left + RANGE.max;
+    let y1 = clientRect.top + clientRect.height;
+    let x2 = clientRect.left + RANGE.max;
+    let y2 = clientRect.top;
+    let x3 = clientRect.left + RANGE.max + 20;
     let y3 = clientRect.top + clientRect.height / 2;
 
     let p = `${x1},${y1} ${x2},${y2} ${x3},${y3}`;
-    return getNodeGroup(nodeGroupId).append("polygon").attr("points", p).style("fill", "#5cb85c")
-        .attr("class", "rightTriangle");
+    return getNodeGroup(nodeGroupId).append("polygon").attr("points", p).attr("class", "rightTriangle");
 }
 
 function removeRightTriangle(nodeGroupId) {
@@ -101,25 +118,29 @@ function removeRightTriangle(nodeGroupId) {
 }
 
 function drawBottomTriangle(nodeGroupId, clientRect) {
-    let x1 = clientRect.left + clientRect.width / 2 - 25;
+    let x1 = clientRect.left + RANGE.max / 2 - 30;
     let y1 = clientRect.top + clientRect.height;
-    let x2 = clientRect.left + clientRect.width / 2 + 25;
+    let x2 = clientRect.left + RANGE.max / 2 + 30;
     let y2 = clientRect.top + clientRect.height;
-    let x3 = clientRect.left + clientRect.width / 2;
-    let y3 = clientRect.top + clientRect.height + 25;
+    let x3 = clientRect.left + RANGE.max / 2;
+    let y3 = clientRect.top + clientRect.height + 30;
 
     let p = `${x1},${y1} ${x2},${y2} ${x3},${y3}`;
-    return getNodeGroup(nodeGroupId).append("polygon").attr("points", p).style("fill", "#5cb85c")
-        .attr("class", "bottomTriangle");
+    return getNodeGroup(nodeGroupId).append("polygon").attr("points", p).attr("class", "bottomTriangle");
 }
 
 function removeBottomTriangle(nodeGroupId) {
     getNodeGroup(nodeGroupId).select(".bottomTriangle").remove();
 }
 
-function drawPath(nodeGroupId, clientRect) {
-    let d = composePathD(clientRect.left, clientRect.top - rectInterspace, clientRect.left, clientRect.top, clientRect.width);
-    return getNodeGroup(nodeGroupId).append("path").attr("d", d);
+function drawCloseIcon(nodeGroupId, clientRect) {
+    let d = `M 225,${clientRect.top + 15} L 235,${clientRect.top + 25} M 235,${clientRect.top + 15} L225,${clientRect.top + 25}`;
+    return getNodeGroup(nodeGroupId).append("path").attr("d", d).attr("id", `closeIcon_${nodeGroupId}`).attr("class", "close-x");
+}
+
+function drawLinkPath(nodeGroupId, clientRect) {
+    let d = composePathD(clientRect.left, clientRect.top - RECT_INTERSPACE, clientRect.left, clientRect.top, clientRect.width);
+    return getNodeGroup(nodeGroupId).append("path").attr("d", d).attr("class", "nodeLink");
 }
 
 function composePathD(parentX, parentY, x, y, w) {
@@ -134,14 +155,17 @@ function addCohortNodeToSelection(cohortNode) {
         markElement(selectedCohortNode.nodeConfig.id, null);
     }
 
-    let nodeColor = getCohortNodeColor(cohortNode.cohort.groupId);
+    let nodeColor = getCohortGroupColor(cohortNode.cohort.groupId);
     updateDataSelectionView(cohortNode.cohort, nodeColor);
     markElement(cohortNode.nodeConfig.id, `fill: ${nodeColor}`);
 }
 
 function onRightTriangleClickHandler(cohortNode) {
-    let newCohortNode = getBaseCohortNode();
-    drawBaseNodeGroup(newCohortNode);
+    if (cohortNode.nodeConfig.id.includes("_baseCohortNode")) {
+        copyBaseCohortNode();
+    } else {
+        copyCohortGroup(cohortNode);
+    }
     removeRightTriangle(cohortNode.nodeConfig.nodeGroupId);
 }
 
@@ -211,12 +235,20 @@ function markElement(elementId, cssText) {
     }
 }
 
+function changeStrokeOpacityOfCohortNodeDescendantsCloseIcon(cohortNode, strokeOpacity) {
+    let n = cohortNode.next;
+    while (n) {
+        document.getElementById(`closeIcon_${n.nodeConfig.nodeGroupId}`).style.strokeOpacity = strokeOpacity;
+        n = n.next;
+    }
+}
+
 function removeCohortNodeFromQueryingView(groupId) {
     let group = document.getElementById(groupId);
     group.parentNode.removeChild(group);
 }
 
-function getCohortNodeColor(cohortGroupId) {
+function getCohortGroupColor(cohortGroupId) {
     let split = cohortGroupId.split("-");
 
     switch (Number(split[1])) {

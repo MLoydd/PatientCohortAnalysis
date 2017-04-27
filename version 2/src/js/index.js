@@ -30,16 +30,6 @@ function closingIconOnClickHandler() {
     removeCohortNodeAndItsDependencies();
 }
 
-function closingIconMouseOverHandler() {
-    hideNavIcons();
-    displayClosingIcon(selectedCohortNode.cohort.groupId);
-    highlightChildrenOfSelectedCohortNode("fill:#ff0000");
-}
-
-function closingIconMouseOutHandler() {
-    highlightChildrenOfSelectedCohortNode(null);
-}
-
 /**
  * validation functions
  */
@@ -61,7 +51,7 @@ function validateInputField(inputElement, cssText) {
  */
 const queryContainer = document.getElementById("queryContainer");
 function displayQueryContainer(cohortGroupId, clientRect) {
-    displayElement(cohortGroupId, queryContainer, clientRect.width / 2, clientRect.top + clientRect.height, -75, 5, "flex");
+    displayElement(cohortGroupId, queryContainer, RANGE.max / 2, clientRect.top + clientRect.height, -75, 5, "flex");
     inputProperty.focus();
 }
 

@@ -9,15 +9,6 @@ function addCohortNodeToDataSelection(cohort, nodeColor) {
     return true;
 }
 
-function isBaseCohortAlreadySelected(cohort) {
-    for (let c of SELECTED_COHORT_MAP.values) {
-        if (c.property.toLowerCase() === cohort.property.toLowerCase()) {
-            return true;
-        }
-    }
-    return false;
-}
-
 function updateDataSelectionView(cohort, columnColor) {
     for (let c of SELECTED_COHORT_MAP.keys()) {
         let columnId = getColumnId(cohort.groupId);
@@ -26,12 +17,17 @@ function updateDataSelectionView(cohort, columnColor) {
             SELECTED_COHORT_MAP.set(columnId, cohort);
             addCohortColumnItems(c, cohort.dataset);
             notifyDataAnalysingViewOnChange();
-            updatePropertySelectionOnAddedColumn();
+            updatePropertySelectionOnAddedColumn(columnId);
             return;
         }
     }
 
     addCohortNodeToDataSelection(cohort, columnColor);
+}
+
+function clearSelectedCohortMap() {
+    SELECTED_COHORT_MAP.clear();
+    clearDataSelectionViewGrid();
 }
 
 /**
@@ -40,7 +36,7 @@ function updateDataSelectionView(cohort, columnColor) {
 function addCohortToSelectionGrid(cohort, nodeColor) {
     let columnId = addCohortToDataSelection(cohort);
 
-    addCohortColumn(cohort.groupId, columnId, nodeColor);
+    addCohortColumn(columnId, nodeColor);
     addCohortColumnItems(columnId, cohort.dataset);
 
     notifyDataAnalysingViewOnChange();
@@ -67,9 +63,8 @@ function showGrid() {
     showSelectionView();
 }
 
-function addCohortColumn(cohortGroupId, columnId, columnColor) {
-    let columnName = getCohortGroupName(cohortGroupId);
-    return drawCohortColumn(columnId, columnName, columnColor);
+function addCohortColumn(columnId, columnColor) {
+    return drawCohortColumn(columnId, columnColor);
 }
 
 function addCohortColumnItems(columnId, dataset) {

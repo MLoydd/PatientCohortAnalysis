@@ -8,12 +8,40 @@
 }
 
 .rightTriangle {
+    fill: #5cb85c;
+    opacity: 0.3;
+}
+
+.rightTriangle:hover {
+    opacity: 1.0;
 }
 
 .bottomTriangle {
+    fill: #5cb85c;
+    opacity: 0.3;
+}
+
+.bottomTriangle:hover {
+    opacity: 1.0;
+}
+
+.cohortColumn {
+
 }
 
 .colItem {
+}
+
+.close-x {
+    fill: transparent;
+    stroke: red;
+    stroke-linecap: round;
+    stroke-width: 5;
+    stroke-opacity: 0.3;
+}
+
+.close-x:hover {
+    stroke-opacity: 1.0;
 }
 
 /* custom scrollbar */
@@ -175,10 +203,10 @@
     stroke: #000000;
 }
 
-.node path {
+.node .nodeLink {
     shape-rendering: crispEdges;
     fill: #efefdf;
-    fill-opacity: .4;
+    fill-opacity: .5;
 }
 
 .query-container {

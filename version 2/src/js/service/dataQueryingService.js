@@ -2,7 +2,7 @@
  * Created by Mike on 06-Apr-17.
  */
 
-const rectHeight = 40;
+const RECT_Height = 40;
 const RANGE = {min: 0, max: 250};
 const INTERSPACE = {dx: 100, dy: 50};
 
@@ -19,10 +19,11 @@ function initDataQueryingService(dataset) {
     drawBaseNodeGroup(cohortNode);
 }
 
-function getBaseCohortNode() {
+function copyBaseCohortNode() {
     let cohortGroupId = createNewCohortGroup();
     let id = `${cohortGroupId}_${BASE_COHORT_NODE.id}`;
-    return composeCohortNode("Patients", "*", getDataset(), cohortGroupId, BASE_COHORT_NODE.text, id);
+    let cohortNode = composeCohortNode("Patients", "*", getDataset(), cohortGroupId, BASE_COHORT_NODE.text, id);
+    drawBaseNodeGroup(cohortNode);
 }
 
 //let selectedCohortNode = null;
@@ -85,19 +86,20 @@ function copyCohortGroup(cohortNode) {
     return copyCohortNodesToNewCohortGroup(cohortNode, linkedList);
 }
 
-function copyCohortNodesToNewCohortGroup(refCohortNode, linkedListToCopy) {
+function copyCohortNodesToNewCohortGroup(cohortNode, linkedListToCopy) {
     let newCohortGroupId = createNewCohortGroup();
     let nodeToCopy = linkedListToCopy.head;
-    while (nodeToCopy !== refCohortNode.next) {
+    while (nodeToCopy !== cohortNode.next) {
         let cohortNode = copyCohortNode(newCohortGroupId, nodeToCopy);
         if (linkedListToCopy.head === nodeToCopy) {
             drawBaseNodeGroup(cohortNode);
         } else {
+            removeBottomTriangle(selectedCohortNode.nodeConfig.nodeGroupId);
             drawCohortNodeGroup(cohortNode);
         }
+        selectedCohortNode = cohortNode;
         nodeToCopy = nodeToCopy.next;
     }
-    return newCohortGroupId;
 }
 
 function copyCohortNode(newCohortGroupId, cohortNode) {
@@ -126,7 +128,7 @@ function composeNodeClientRect(cohortGroupId, datasetSize) {
     let left = 0;
     let top = calculateCohortNodeClientRectTop(cohortGroupId);
     let width = QUERYING_SCALE(datasetSize);
-    return new ClientRect(left, top, width, rectHeight);
+    return new ClientRect(left, top, width, RECT_Height);
 }
 
 function calculateCohortNodeClientRectTop(cohortGroupId) {
@@ -137,36 +139,39 @@ function calculateCohortNodeClientRectTop(cohortGroupId) {
 /**
  * cohort remove functions
  */
-function removeCohortNodeAndItsDependencies() {
-    let cohortNode = selectedCohortNode;
-    while (cohortNode) {
-        removeCohortNodeFromQueryingView(cohortNode.nodeConfig.nodeGroupId);
-        removeCohortFromDataSelection(cohortNode.cohort);
-        cohortNode = cohortNode.next;
+function removeCohortNodeAndItsDependencies(cohortNode) {
+    let node = cohortNode;
+    while (node) {
+        removeCohortNodeFromQueryingView(node.nodeConfig.nodeGroupId);
+        removeCohortFromDataSelection(node.cohort);
+        node = node.next;
     }
 
-    let linkedList = COHORT_GROUP_MAP.get(selectedCohortNode.cohort.groupId);
-    linkedList.remove(selectedCohortNode);
-    updateCohortGroupLinkedListOnChange(selectedCohortNode.cohort.groupId);
-}
+    let linkedList = COHORT_GROUP_MAP.get(cohortNode.cohort.groupId);
+    linkedList.remove(cohortNode);
 
-function updateCohortGroupLinkedListOnChange(cohortGroupId) {
-    let linkedList = COHORT_GROUP_MAP.get(cohortGroupId);
-    if (!linkedList.head) {
-        COHORT_GROUP_MAP.set(cohortGroupId, null);
-        redrawView();
+    if (linkedList.length > 0) {
+        addCohortNodeToSelection(linkedList.get(linkedList.length - 1));
+        return;
     }
+
+    COHORT_GROUP_MAP.set(cohortNode.cohort.groupId, null);
+    clearSelectedCohortMap();
+    redrawView();
 }
 
 function redrawView() {
     let copy = new Map(COHORT_GROUP_MAP.entries());
     COHORT_GROUP_MAP.clear();
 
+    let l = null;
     for (let [k, v] of copy) {
         copy.delete(k);
 
         if (v !== null) {
             COHORT_GROUP_MAP.set(k, v);
+            addCohortNodeToSelection(v.get(v.length - 1));
+            l = v;
             continue;
         }
 
@@ -178,23 +183,19 @@ function redrawView() {
 
     for (let [k, v] of copy) {
         removeCohortNodeFromQueryingView(k);
+        copyCohortNodesToNewCohortGroup(v.get(v.length - 1), v);
 
-        let node = v.get(v.length - 1);
-        copyCohortNodesToNewCohortGroup(node, v);
+        l = v;
+    }
+
+    if (copy.size === 0) {
+        addRightTriangle(l.get(0));
     }
 }
 
 /**
  * util functions
  */
-function highlightChildrenOfSelectedCohortNode(cssText) {
-    let nodeCohort = selectedCohortNode.next;
-    while (nodeCohort) {
-        markElement(nodeCohort.nodeConfig.id, cssText);
-        nodeCohort = nodeCohort.next;
-    }
-}
-
 function populatePropertiesInformationColumn() {
     let map = getPropertiesMap();
     for (let [k, v] of map) {

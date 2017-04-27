@@ -15,6 +15,10 @@ function isDataSelectionViewVisible() {
     return document.getElementById("dataSelectionView").hasAttribute("style");
 }
 
+function clearDataSelectionViewGrid() {
+    d3.select(`#dataSelectionGrid`).selectAll(".cohortColumn").remove();
+}
+
 /**
  * basic column functions
  */
@@ -27,13 +31,12 @@ function addColumn(columnId) {
 
     let col = document.createElement("div");
     col.setAttribute("id", columnId);
-    col.classList.add("col-2");
+    col.classList.add("col-2", "cohortColumn");
     return DATA_SELECTION_GRID.appendChild(col);
 }
 
 function removeColumn(columnId) {
     if (!isColumnIdExisting(columnId)) {
-        console.log(`removeColumn - columnId : ${columnId} is not existing!`);
         return;
     }
 
@@ -61,13 +64,13 @@ function isColumnIdExisting(columnId) {
 /**
  * basic column item functions
  */
-function addHeadItemToColumn(columnId, content) {
-    let item = addItemToColumn(columnId, content);
+function addHeadItemToColumn(columnId) {
+    let item = addItemToColumn(columnId);
     item.classList.add("column-head");
     return item;
 }
 
-function addItemToColumn(columnId, content) {
+function addItemToColumn(columnId, content = "") {
     let item = document.createElement("div");
     item.classList.add("row", "align-items-center");
 
@@ -103,10 +106,9 @@ function onPropertyItemClick(property) {
 /**
  * cohort column functions
  */
-function drawCohortColumn(columnId, columnName, columnColor) {
+function drawCohortColumn(columnId, columnColor) {
     let column = addColumn(columnId);
-    let item = addHeadItemToColumn(columnId, columnName);
-    item.classList.add("justify-content-center");
+    let item = addHeadItemToColumn(columnId);
     item.style.cssText = `background-color: ${columnColor}; border-left: 0.5px solid #ffffff;`;
     return column;
 }

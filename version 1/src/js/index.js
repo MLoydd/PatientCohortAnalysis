@@ -82,11 +82,11 @@ function closingIconOnClickHandler() {
 function closingIconMouseOverHandler() {
     hideNavIcons();
     displayClosingIcon();
-    highlightChildrenOfSelectedCohortNode("fill:#ff0000");
+    changeStrokeOpacityOfCohortNodeDescendantsCloseIcon("fill:#ff0000");
 }
 
 function closingIconMouseOutHandler() {
-    highlightChildrenOfSelectedCohortNode(null);
+    changeStrokeOpacityOfCohortNodeDescendantsCloseIcon(null);
 }
 
 function isQueryContainerVisible() {
