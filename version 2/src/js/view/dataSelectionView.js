@@ -126,12 +126,6 @@ function drawCohortColumnItem(columnId, itemId, width) {
     return item;
 }
 
-function updateCohortColumn(columnId, itemId, width) {
-    let rect = createDataAvailabilityBar(150, 25, width, 25);
-
-    clearColumn(columnId);
-}
-
 /**
  * create availability bar
  */

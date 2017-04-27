@@ -19,18 +19,14 @@ function initDataQueryingService(dataset) {
     drawBaseNodeGroup(cohortNode);
 }
 
-function copyBaseCohortNode() {
+function copyBaseCohortNode(cohortNode) {
     let cohortGroupId = createNewCohortGroup();
     let id = `${cohortGroupId}_${BASE_COHORT_NODE.id}`;
-    let cohortNode = composeCohortNode("Patients", "*", getDataset(), cohortGroupId, BASE_COHORT_NODE.text, id);
+    let cohortNode = composeCohortNode("Patients", "*", cohortNode.cohort.dataset, cohortGroupId, BASE_COHORT_NODE.text, id);
     drawBaseNodeGroup(cohortNode);
 }
 
 //let selectedCohortNode = null;
-function setSelectedCohortNode(cohortNode) {
-    selectedCohortNode = cohortNode;
-}
-
 function queryCohort(cohortNode, property, query) {
     let p = findProperty(property);
     if (!p) {

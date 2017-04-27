@@ -164,11 +164,7 @@ function composeDataArrayWithTwoProperty(dataset, propertyX, propertyY, cohortsL
 
 function convertToChartFormat(value, property) {
     if (getPropertyType(property) === "date") {
-        if (value instanceof Date) {
-            return value;
-        } else {
-            return new Date(value);
-        }
+        return new Date(value);
     }
 
     return value;

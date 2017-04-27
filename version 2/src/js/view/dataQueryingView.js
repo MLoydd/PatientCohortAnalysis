@@ -59,7 +59,7 @@ function drawCohortNodeElements(cohortNode) {
 
     addRightTriangle(cohortNode);
 
-    if (!isBaseCohortNode(nodeConfig.id)) {
+    if (!isCoreBaseCohortNode(nodeConfig.id)) {
         drawCloseIcon(nodeConfig.nodeGroupId, nodeConfig.clientRect).on("click", () => {
             removeCohortNodeAndItsDependencies(cohortNode);
         }).on("mouseover", () => {
@@ -72,7 +72,7 @@ function drawCohortNodeElements(cohortNode) {
     addCohortNodeToSelection(cohortNode);
 }
 
-function isBaseCohortNode(nodeId) {
+function isCoreBaseCohortNode(nodeId) {
     return nodeId === BASE_COHORT_NODE.id;
 }
 
@@ -161,12 +161,17 @@ function addCohortNodeToSelection(cohortNode) {
 }
 
 function onRightTriangleClickHandler(cohortNode) {
-    if (cohortNode.nodeConfig.id.includes("_baseCohortNode")) {
-        copyBaseCohortNode();
-    } else {
-        copyCohortGroup(cohortNode);
+    if (isBaseCohortNode(cohortNode.nodeConfig.id)) {
+        copyBaseCohortNode(cohortNode);
+        removeRightTriangle(cohortNode.nodeConfig.nodeGroupId);
+        return;
     }
-    removeRightTriangle(cohortNode.nodeConfig.nodeGroupId);
+
+    copyCohortGroup(cohortNode);
+}
+
+function isBaseCohortNode(nodeId) {
+    return nodeId.includes(BASE_COHORT_NODE.id);
 }
 
 let selectedCohortNode = null;
