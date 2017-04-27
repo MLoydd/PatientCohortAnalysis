@@ -97,6 +97,10 @@ function getAnalysableProperties() {
     return set;
 }
 
+function getPropertyType(property) {
+    return PROPERTIES_MAP.get(property);
+}
+
 function getPropertiesMap() {
     return PROPERTIES_MAP;
 }

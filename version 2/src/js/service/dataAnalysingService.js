@@ -58,7 +58,10 @@ function getScatterPlotChartData() {
         s[i] = SERIES[i];
     }
 
-    drawScatterPlotChart(dataArray, properties[0], properties[1], s, a);
+    let hAxisType = getPropertyType(properties[0]);
+    let vAxisType = getPropertyType(properties[1]);
+
+    drawScatterPlotChart(dataArray, properties[0], properties[1], s, a, hAxisType, vAxisType);
 }
 
 /**
@@ -152,11 +155,23 @@ function composeDataArrayWithTwoProperty(dataset, propertyX, propertyY, cohortsL
     const dataArray = [];
     for (let p of dataset) {
         let a = new Array(cohortsLength + 1).fill(null);
-        a[0] = p.data.get(propertyX);
-        a[index] = p.data.get(propertyY);
+        a[0] = convertToChartFormat(p.data.get(propertyX), propertyX);
+        a[index] = convertToChartFormat(p.data.get(propertyY), propertyY);
         dataArray.push(a);
     }
     return dataArray;
+}
+
+function convertToChartFormat(value, property) {
+    if (getPropertyType(property) === "date") {
+        if (value instanceof Date) {
+            return value;
+        } else {
+            return new Date(value);
+        }
+    }
+
+    return value;
 }
 
 // Takes an ascending sorted array and returns the median value.

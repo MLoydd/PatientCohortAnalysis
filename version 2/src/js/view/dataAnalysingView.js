@@ -35,7 +35,11 @@ function showBoxPlotChart() {
     document.getElementById("scatterPlotBtn").disabled = false;
     clearCharts();
 
-    getBoxPlotChartData();
+    try {
+        getBoxPlotChartData();
+    } catch (e) {
+        document.getElementById("chartMessage").innerHTML = "Box Plot cannot be shown for the selected parameters!";
+    }
 }
 
 function showScatterPlotChart() {
@@ -64,7 +68,7 @@ function clearCharts() {
  * scatter plot chart functions
  */
 
-function drawScatterPlotChart(dataArray, hAxis, vAxis, series, columns) {
+function drawScatterPlotChart(dataArray, hAxis, vAxis, series, columns, hAxisType, vAxisType) {
 
     const options = {
         title: `Comparision : ${hAxis} to ${vAxis}`,
@@ -78,9 +82,9 @@ function drawScatterPlotChart(dataArray, hAxis, vAxis, series, columns) {
     };
 
     const data = new google.visualization.DataTable();
-    data.addColumn("number", hAxis);
+    data.addColumn(hAxisType, hAxis);
     for (let c of columns) {
-        data.addColumn("number", c);
+        data.addColumn(vAxisType, c);
     }
     data.addRows(dataArray);
 
