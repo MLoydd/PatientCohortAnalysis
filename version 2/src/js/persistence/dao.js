@@ -45,6 +45,10 @@ function getTypeOfValue(value) {
         return "string";
     }
 
+    if (v instanceof Date) {
+        return "date";
+    }
+
     return null;
 }
 
@@ -56,6 +60,11 @@ function parseValueToType(value) {
     let number = Number(value);
     if (Number.isSafeInteger(number)) {
         return number;
+    }
+
+    let dateTime = new Date(value);
+    if (!isNaN(dateTime)) {
+        return dateTime;
     }
 
     return value;

@@ -276,12 +276,12 @@ function addItemToPropertiesInformationColumn(propertyName, type) {
         .append("span").attr("class", "tooltipText").html(getToolTipText(type));
 
     let dropdown = item.append("span").attr("class", "dropdownSelection");
-    let icon = dropdown.append("img").attr("src", "img/dropdown_icon.svg").attr("class", "dropdownIcon");
+    dropdown.append("img").attr("src", "img/dropdown_icon.svg").attr("class", "dropdownIcon").on("click", () => {
+        document.getElementById("dropdownBlock").classList.toggle("show");
+    });
+
     dropdown.append("div").attr("id", "dropdownBlock").attr("class", "dropdown-content")
         .append("span").html(getOtherTypes(type));
-    icon.on("click", () => {
-        document.getElementById("dropdownBlock").classList.toggle("show");
-    })
 }
 
 function getToolTipText(type) {
