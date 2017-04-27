@@ -90,7 +90,7 @@ function executeQuery(dataset, property, query) {
 function getAnalysableProperties() {
     let set = new Set();
     for (let [k, v] of PROPERTIES_MAP) {
-        if (v === "number") {
+        if (v === "number" || v === "date") {
             set.add(k);
         }
     }
