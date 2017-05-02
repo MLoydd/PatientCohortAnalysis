@@ -7,7 +7,7 @@ const BASE_COHORT_NODE = {id: "baseCohortNode", text: "All Patients"};
 
 function addCohortGroupColumn(cohortGroupId) {
     let id = trimAllWhiteSpace(cohortGroupId);
-    return d3.select("#dataQueryingGrid").append("div").attr("id", id).attr("class", "col-2");
+    return d3.select("#dataQueryingGrid").append("div").attr("id", id).attr("class", "col-2 cohortQueryColumn");
 }
 
 function getCohortGroupColumn(cohortGroupId) {
@@ -68,8 +68,6 @@ function drawCohortNodeElements(cohortNode) {
             changeStrokeOpacityOfCohortNodeDescendantsCloseIcon(cohortNode, null);
         });
     }
-
-    addCohortNodeToSelection(cohortNode);
 }
 
 function isCoreBaseCohortNode(nodeId) {
@@ -83,7 +81,7 @@ function getNodeGroup(groupName) {
 
 function drawBaseRectOutline(nodeGroupId, clientRect) {
     return getNodeGroup(nodeGroupId).append("rect").attr("x", clientRect.left).attr("y", clientRect.top)
-        .attr("width", RANGE.max).attr("height", clientRect.height).style("fill", "#efefef");
+        .attr("width", RANGE.max).attr("height", clientRect.height).style("fill", "#f7f7f7");
 }
 
 function drawRect(nodeGroupId, id, clientRect) {
@@ -150,9 +148,9 @@ function composePathD(parentX, parentY, x, y, w) {
 /**
  * event handlers
  */
-function addCohortNodeToSelection(cohortNode) {
-    if (selectedCohortNode) {
-        markElement(selectedCohortNode.nodeConfig.id, null);
+function addCohortNodeToSelection(cohortNode, prevCohortNode) {
+    if (prevCohortNode) {
+        markElement(prevCohortNode.nodeConfig.id, null);
     }
 
     let nodeColor = getCohortGroupColor(cohortNode.cohort.groupId);
@@ -162,7 +160,7 @@ function addCohortNodeToSelection(cohortNode) {
 
 function onRightTriangleClickHandler(cohortNode) {
     if (isBaseCohortNode(cohortNode.nodeConfig.id)) {
-        copyBaseCohortNode(cohortNode);
+        copyBaseCohortNode(cohortNode.cohort.dataset);
         removeRightTriangle(cohortNode.nodeConfig.nodeGroupId);
         return;
     }
@@ -174,10 +172,8 @@ function isBaseCohortNode(nodeId) {
     return nodeId.includes(BASE_COHORT_NODE.id);
 }
 
-let selectedCohortNode = null;
 function onBottomTriangleClickHandler(cohortNode) {
-    selectedCohortNode = cohortNode;
-    displayQueryContainer(cohortNode.cohort.groupId, cohortNode.nodeConfig.clientRect);
+    displayQueryContainer(cohortNode);
 }
 
 function queryInputFieldKeyDownHandler() {
@@ -205,15 +201,17 @@ function queryInputFieldKeyDownHandler() {
     event.preventDefault(); // Cancel the default action to avoid it being handled twice
 }
 
+let selectedCohortNode = null;
 function applyFilterOnClickHandler() {
     if (!validateQueryInputFields()) {
         return;
     }
 
+    let cohortNode = selectedCohortNode;
     let property = inputProperty.value.trim().toLowerCase();
     let query = inputQuery.value.trim().toLowerCase();
     try {
-        queryCohort(selectedCohortNode, property, query);
+        queryCohort(cohortNode, property, query);
     } catch (e) {
         if (e instanceof PropertyInputError) {
             alert(e.message);
@@ -226,7 +224,7 @@ function applyFilterOnClickHandler() {
         }
         return;
     }
-    removeBottomTriangle(selectedCohortNode.nodeConfig.nodeGroupId);
+    removeBottomTriangle(cohortNode.nodeConfig.nodeGroupId);
     resetQueryElements();
 }
 
@@ -254,22 +252,24 @@ function removeCohortNodeFromQueryingView(groupId) {
 }
 
 function getCohortGroupColor(cohortGroupId) {
-    let split = cohortGroupId.split("-");
+    return "#aacaea";
 
-    switch (Number(split[1])) {
-        case 0:
-            return "#81d8d0";
-        case 1:
-            return "#ffc100";
-        case 2:
-            return "#dda0da";
-        case 3:
-            return "#ffafaf";
-        case 4:
-            return "#ffc0cb";
-        default:
-            return "#c9c9ff";
-    }
+    /*let split = cohortGroupId.split("-");
+
+     switch (Number(split[1])) {
+     case 0:
+     return "#c9c9ff";
+     case 1:
+     return "#ffc0cb";
+     case 2:
+     return "#dda0da";
+     case 3:
+     return "#d1c181";
+     case 4:
+     return "#ffc100";
+     default:
+     return "#71e1c1";
+     }*/
 }
 
 function addItemToPropertiesInformationColumn(propertyName, type) {
@@ -285,8 +285,8 @@ function addItemToPropertiesInformationColumn(propertyName, type) {
         document.getElementById("dropdownBlock").classList.toggle("show");
     });
 
-    dropdown.append("div").attr("id", "dropdownBlock").attr("class", "dropdown-content")
-        .append("span").html(getOtherTypes(type));
+    /*dropdown.append("div").attr("id", "dropdownBlock").attr("class", "dropdown-content")
+     .append("span").html(getOtherTypes(type));*/
 }
 
 function getToolTipText(type) {
@@ -300,9 +300,6 @@ function getToolTipText(type) {
     }
 }
 
-function getOtherTypes(type) {
-    if (type === "number") {
-        return "string";
-    }
-    return "number";
+function getAllTypes() {
+    return ["number", "text", "date", "ordinal"];
 }

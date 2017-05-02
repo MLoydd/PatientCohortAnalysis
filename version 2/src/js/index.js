@@ -10,27 +10,6 @@ function initApp() {
 }
 
 /**
- * event handlers
- */
-function triangleIconOnClickHandler() {
-    hideNavIcons();
-    displayQueryContainer(selectedCohortNode.cohort.groupId);
-}
-
-function triangleIconMouseOverHandler() {
-    displayTriangleIcon(selectedCohortNode.cohort.groupId);
-}
-
-function triangleIconMouseOutHandler() {
-    hideNavIcons();
-}
-
-function closingIconOnClickHandler() {
-    hideNavIcons();
-    removeCohortNodeAndItsDependencies();
-}
-
-/**
  * validation functions
  */
 function validateQueryInputFields() {
@@ -50,7 +29,11 @@ function validateInputField(inputElement, cssText) {
  * query elements functions
  */
 const queryContainer = document.getElementById("queryContainer");
-function displayQueryContainer(cohortGroupId, clientRect) {
+function displayQueryContainer(cohortNode) {
+    let cohortGroupId = cohortNode.cohort.groupId;
+    let clientRect = cohortNode.nodeConfig.clientRect;
+    selectedCohortNode = cohortNode;
+
     displayElement(cohortGroupId, queryContainer, RANGE.max / 2, clientRect.top + clientRect.height, -75, 5, "flex");
     inputProperty.focus();
 }

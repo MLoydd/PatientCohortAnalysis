@@ -5,31 +5,38 @@
 const DATA_SET = new Set();
 const PROPERTIES_MAP = new Map();
 
-d3.csv("./csv/data.csv", function (csv) {
 
-    if (csv.length === 0) {
-        alert("No Data found in CSV File");
-        return;
-    }
+const CSV_FILE_1 = "./csv/data.csv";
+const CSV_FILE_2 = "./csv/oppna_jamforelser_data.csv";
 
-    for (let [k, v] of Object.entries(csv[0])) {
-        let type = getTypeOfValue(v);
-        PROPERTIES_MAP.set(k.trim().toLowerCase(), type);
-    }
+function loadData() {
+    d3.csv(CSV_FILE_1, function (csv) {
 
-    csv.forEach(function (row) {
-        let patient = new Patient(row.P_ID);
-        for (let [k, v] of Object.entries(row)) {
-            let value = parseValueToType(v.trim().toLowerCase());
-            patient.add(k.trim().toLowerCase(), value);
+        if (csv.length === 0) {
+            alert("No Data found in CSV File");
+            return;
         }
 
-        DATA_SET.add(patient);
-    });
+        for (let [k, v] of Object.entries(csv[0])) {
+            let type = getTypeOfValue(v);
+            PROPERTIES_MAP.set(k.trim().toLowerCase(), type);
+        }
 
-    console.log(`DATA_SET.size : ${DATA_SET.size}`);
-    console.log(`PROPERTIES_MAP.size : ${PROPERTIES_MAP.size}`);
-});
+        csv.forEach(function (row) {
+            let patient = new Patient(row.P_NUM);
+            for (let [k, v] of Object.entries(row)) {
+                let value = parseValueToType(v.trim().toLowerCase());
+                patient.add(k.trim().toLowerCase(), value);
+            }
+
+            DATA_SET.add(patient);
+        });
+
+        console.log(`DATA_SET.size : ${DATA_SET.size}`);
+        console.log(`PROPERTIES_MAP.size : ${PROPERTIES_MAP.size}`);
+        initApp();
+    });
+}
 
 function getDataset() {
     return DATA_SET;
@@ -37,6 +44,7 @@ function getDataset() {
 
 function getTypeOfValue(value) {
     let v = parseValueToType(value);
+
     if (typeof v === "number") {
         return "number";
     }
@@ -58,7 +66,7 @@ function parseValueToType(value) {
     }
 
     let number = Number(value);
-    if (Number.isSafeInteger(number)) {
+    if (!isNaN(number)) {
         return number;
     }
 

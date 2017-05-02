@@ -36,7 +36,7 @@ function clearSelectedCohortMap() {
 function addCohortToSelectionGrid(cohort, nodeColor) {
     let columnId = addCohortToDataSelection(cohort);
 
-    addCohortColumn(columnId, nodeColor);
+    addCohortColumn(columnId, nodeColor, getNodeClientRectWidth(cohort.dataset.size));
     addCohortColumnItems(columnId, cohort.dataset);
 
     notifyDataAnalysingViewOnChange();
@@ -63,8 +63,8 @@ function showGrid() {
     showSelectionView();
 }
 
-function addCohortColumn(columnId, columnColor) {
-    return drawCohortColumn(columnId, columnColor);
+function addCohortColumn(columnId, columnColor, nodeWidth) {
+    return drawCohortColumn(columnId, columnColor, nodeWidth);
 }
 
 function addCohortColumnItems(columnId, dataset) {

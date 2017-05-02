@@ -17,23 +17,24 @@ function initDataQueryingService(dataset) {
     let cohortGroupId = createNewCohortGroup();
     let cohortNode = composeCohortNode("Patients", "*", dataset, cohortGroupId, BASE_COHORT_NODE.text, BASE_COHORT_NODE.id);
     drawBaseNodeGroup(cohortNode);
+    addCohortNodeToSelection(cohortNode);
 }
 
-function copyBaseCohortNode(cohortNode) {
+function copyBaseCohortNode(dataset) {
     let cohortGroupId = createNewCohortGroup();
     let id = `${cohortGroupId}_${BASE_COHORT_NODE.id}`;
-    let cohortNode = composeCohortNode("Patients", "*", cohortNode.cohort.dataset, cohortGroupId, BASE_COHORT_NODE.text, id);
+    let cohortNode = composeCohortNode("Patients", "*", dataset, cohortGroupId, BASE_COHORT_NODE.text, id);
     drawBaseNodeGroup(cohortNode);
+    addCohortNodeToSelection(cohortNode);
 }
 
-//let selectedCohortNode = null;
 function queryCohort(cohortNode, property, query) {
     let p = findProperty(property);
     if (!p) {
         throw new PropertyInputError("Property does NOT Exist.\nPlease enter the exact name as it is in the CSV file.");
     }
 
-    let dataset = executeQuery(cohortNode.cohort.dataset, property, query);
+    let dataset = executeQuery(cohortNode.cohort.dataset, p, query);
     if (dataset.size === 0) {
         throw new QueryInputError("NO Patient found with queried condition");
     }
@@ -46,7 +47,7 @@ function queryCohort(cohortNode, property, query) {
         }
     }
 
-    updateQueryingView(cohortNode.cohort.groupId, property, query, dataset);
+    updateQueryingView(cohortNode, p, query, dataset);
 }
 
 function findCohortInCohortGroupMap(dataset) {
@@ -63,9 +64,10 @@ function findCohortInCohortGroupMap(dataset) {
     return null;
 }
 
-function updateQueryingView(cohortGroupId, property, query, dataset) {
-    let cohortNode = composeCohortNode(property, query, dataset, cohortGroupId);
-    drawCohortNodeGroup(cohortNode);
+function updateQueryingView(cohortNode, property, query, dataset) {
+    let c = composeCohortNode(property, query, dataset, cohortNode.cohort.groupId);
+    drawCohortNodeGroup(c);
+    addCohortNodeToSelection(c, cohortNode)
 }
 
 function createNewCohortGroup() {
@@ -84,16 +86,19 @@ function copyCohortGroup(cohortNode) {
 
 function copyCohortNodesToNewCohortGroup(cohortNode, linkedListToCopy) {
     let newCohortGroupId = createNewCohortGroup();
+
+    let prevNode = null;
     let nodeToCopy = linkedListToCopy.head;
     while (nodeToCopy !== cohortNode.next) {
-        let cohortNode = copyCohortNode(newCohortGroupId, nodeToCopy);
+        let c = copyCohortNode(newCohortGroupId, nodeToCopy);
         if (linkedListToCopy.head === nodeToCopy) {
-            drawBaseNodeGroup(cohortNode);
+            drawBaseNodeGroup(c);
         } else {
-            removeBottomTriangle(selectedCohortNode.nodeConfig.nodeGroupId);
-            drawCohortNodeGroup(cohortNode);
+            removeBottomTriangle(prevNode.nodeConfig.nodeGroupId);
+            drawCohortNodeGroup(c);
         }
-        selectedCohortNode = cohortNode;
+        addCohortNodeToSelection(c, prevNode);
+        prevNode = c;
         nodeToCopy = nodeToCopy.next;
     }
 }
@@ -123,8 +128,12 @@ function composeNodeConfig(cohortGroupId, nodeGroupId, text, datasetSize, nodeId
 function composeNodeClientRect(cohortGroupId, datasetSize) {
     let left = 0;
     let top = calculateCohortNodeClientRectTop(cohortGroupId);
-    let width = QUERYING_SCALE(datasetSize);
+    let width = getNodeClientRectWidth(datasetSize);
     return new ClientRect(left, top, width, RECT_Height);
+}
+
+function getNodeClientRectWidth(datasetSize) {
+    return QUERYING_SCALE(datasetSize);
 }
 
 function calculateCohortNodeClientRectTop(cohortGroupId) {

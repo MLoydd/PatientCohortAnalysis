@@ -11,7 +11,7 @@ let scatterPlotChart = null;
 function initCharts() {
     boxPlotChart = new google.visualization.LineChart(document.getElementById('chart'));
     scatterPlotChart = new google.visualization.ScatterChart(document.getElementById('chart'));
-    initApp();
+    loadData();
 }
 
 function showAnalysingView() {

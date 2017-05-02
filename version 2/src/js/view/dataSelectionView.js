@@ -64,8 +64,8 @@ function isColumnIdExisting(columnId) {
 /**
  * basic column item functions
  */
-function addHeadItemToColumn(columnId) {
-    let item = addItemToColumn(columnId);
+function addHeadItemToColumn(columnId, svg) {
+    let item = addItemToColumn(columnId, svg);
     item.classList.add("column-head");
     return item;
 }
@@ -106,10 +106,12 @@ function onPropertyItemClick(property) {
 /**
  * cohort column functions
  */
-function drawCohortColumn(columnId, columnColor) {
+function drawCohortColumn(columnId, columnColor, nodeWidth) {
     let column = addColumn(columnId);
-    let item = addHeadItemToColumn(columnId);
-    item.style.cssText = `background-color: ${columnColor}; border-left: 0.5px solid #ffffff;`;
+
+    //let svg = createDataAvailabilityBar(300, 40, nodeWidth, 40, "#f7f7f7", columnColor);
+    //let item = addHeadItemToColumn(columnId, svg);
+    //item.style.cssText = `border-left: 0.5px solid #ffffff;`;
     return column;
 }
 
@@ -129,20 +131,20 @@ function drawCohortColumnItem(columnId, itemId, width) {
 /**
  * create availability bar
  */
-function createDataAvailabilityBar(baseWidth, baseHeight, width, height) {
+function createDataAvailabilityBar(baseWidth, baseHeight, width, height, bColor = "#bebebe", color = "#11a1f1") {
     let ns = "http://www.w3.org/2000/svg";
 
     let svg = document.createElementNS(ns, "svg");
     svg.setAttribute("width", `${baseWidth}`);
     svg.setAttribute("height", `${baseHeight}`);
-    svg.style.cssText = "background: #afafaf";
+    svg.style.cssText = `background: ${bColor}`;
 
     let rect = document.createElementNS(ns, "rect");
     rect.setAttribute("x", "0");
     rect.setAttribute("y", "0");
     rect.setAttribute("width", `${width}`);
     rect.setAttribute("height", `${height}`);
-    rect.setAttribute("fill", "#11a1f1");
+    rect.setAttribute("fill", color);
     svg.appendChild(rect);
 
     return svg;

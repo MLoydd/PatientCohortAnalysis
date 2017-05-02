@@ -16,23 +16,18 @@
 
 <div id="controller">
     <div id="queryContainer" class="query-container">
-        <input id="inputProperty" onkeydown="queryInputFieldKeyDownHandler()" title="property" placeholder="property">
-        <input id="inputQuery" onkeydown="queryInputFieldKeyDownHandler()" title="query" placeholder="query">
+        <input id="inputProperty" onkeydown="queryInputFieldKeyDownHandler()" placeholder="property">
+        <input id="inputQuery" onkeydown="queryInputFieldKeyDownHandler()" placeholder="query">
         <button id="btnFilter" onclick="applyFilterOnClickHandler()">Apply Filter</button>
     </div>
-
-    <img id="triangleIcon" src="img/triangle_icon.svg" class="triangle-hover" onclick="triangleIconOnClickHandler()"
-         onmouseout="triangleIconMouseOutHandler()" onmouseover="triangleIconMouseOverHandler()">
-    <img id="closingIcon" src="img/closing_icon.svg" class="closing-hover" onclick="closingIconOnClickHandler()"
-         onmouseout="closingIconMouseOutHandler()" onmouseover="closingIconMouseOverHandler()">
 </div>
 
 <section id="dataQueryingView" class="container" style="min-width: 100%; margin-top: 30px;">
     <div id="dataQueryingGrid" class="row" style="height: 500px;">
-        <div class="col-2">
-            <div class="row" style="height: 40px; border-right: 2.5px solid #efefef;">
-                <div class="col-12" style="display: inline-flex">
-                    <div class="align-items-center propertiesInformationTitle">Properties Information</div>
+        <div class="col-2" style="border-bottom: 1px solid #eaeaea;">
+            <div class="row propertiesOverviewTitleBox">
+                <div class="col-12 align-self-center">
+                    <h1 class="align-items-center propertiesInformationTitle">Properties</h1>
                 </div>
             </div>
             <div class="row" style="height: 460px;">
@@ -44,8 +39,7 @@
 
 <section id="dataSelectionView" class="container">
     <div id="dataSelectionGrid" class="row">
-        <div id="col_properties" class="col-2 propertiesColumn">
-            <div class="row align-items-center column-head">Properties</div>
+        <div id="col_properties" class="col-2">
         </div>
     </div>
 </section>
@@ -54,6 +48,7 @@
     <div class="row" style="margin-top: 30px">
         <button id="boxPlotBtn" onclick="showBoxPlotChart()" disabled>Box Plot Chart</button>
         <button id="scatterPlotBtn" onclick="showScatterPlotChart()">Scatter Plot Chart</button>
+        <button id="diffChartsBtn">Diff Charts</button>
     </div>
 
     <div id="chart"></div>

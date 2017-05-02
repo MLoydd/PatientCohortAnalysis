@@ -32,6 +32,13 @@
 .colItem {
 }
 
+.propertiesOverviewTitleBox {
+    height: 40px;
+    border-right: 2.5px solid #bababa;
+    border-top: 1px solid #eaeaea;
+    border-bottom: 0.5px solid #eaeaea;
+}
+
 .close-x {
     fill: transparent;
     stroke: red;
@@ -50,8 +57,8 @@
 }
 
 .scrollbar::-webkit-scrollbar-track {
-    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
-    background-color: #F5F5F5;
+    -webkit-box-shadow: inset #dfdfdf;
+    background-color: #dadada;
 }
 
 .scrollbar::-webkit-scrollbar {
@@ -60,7 +67,7 @@
 }
 
 .scrollbar::-webkit-scrollbar-thumb {
-    background-color: #31708f;
+    background-color: #3b5998;
 }
 
 /* tooltip */
@@ -161,20 +168,20 @@
 
 /* Data Querying View */
 .propertiesInformationTitle {
-    display: inline-flex;
+    margin: 0;
     font-size: 20px;
 }
 
 #col_propertiesInformation .row:nth-child(odd) {
-    background-color: #fcfcfc;
-}
-
-.propertiesColumn {
-    padding-left: 30px;
+    background-color: #fbfbfb;
 }
 
 #col_propertiesInformation .row {
     height: 35px;
+}
+
+.cohortQueryColumn {
+    border-right: 1.5px solid #efefef;
 }
 
 #divQuery {
@@ -189,7 +196,7 @@
 
 .node rect {
     shape-rendering: crispEdges;
-    fill: #efefdf;
+    fill: #e4e7e7;
 }
 
 .node text {
@@ -205,7 +212,7 @@
 
 .node .nodeLink {
     shape-rendering: crispEdges;
-    fill: #efefdf;
+    fill: #e4e7e7;
     fill-opacity: .5;
 }
 
@@ -251,9 +258,9 @@
     min-width: 100%;
 
     background: #fdfdfd;
-    border-style: outset none inset none;
     font-size: 20px;
-    margin: 30px 0 30px;
+    margin: 15px 0 30px;
+    border-bottom: 1px solid #f2f2f2;
 }
 
 #dataSelectionGrid .row {
@@ -262,17 +269,12 @@
 }
 
 #dataSelectionGrid .row:nth-child(odd) {
-    background-color: #f9f9f9;
-}
-
-.column-head {
-    cursor: default !important;
-    font-weight: bold;
-    border-right-color: #000000 !important;
+    background-color: #f7f7f7;
 }
 
 #dataSelectionGrid #col_properties .row {
     cursor: pointer;
+    padding-left: 10px;
 }
 
 #dataAnalysingView {
@@ -280,18 +282,24 @@
 }
 
 #dataAnalysingView .row button {
-    margin-right: 20px;
+    margin: 20px 20px;
+    padding: 0 4px;
 
     display: inline-block;
     text-align: center;
     border: none;
-    border-bottom: 0.5px solid #2aabd2;
+    box-shadow: 0 0.2px 0 0.2px #aaaaaa;
+    border-bottom: 2.5px solid #0892d0;
     cursor: pointer;
     background-color: #ffffff;
-    margin-top: 20px;
+    line-height: normal;
+    font-size: 20px;
 }
 
 #dataAnalysingView .row button:disabled {
     cursor: default;
     border-bottom: none;
+    font-size: 30px;
+    color: #000;
+    box-shadow: none;
 }
