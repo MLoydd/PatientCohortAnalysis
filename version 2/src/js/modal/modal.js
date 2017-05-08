@@ -51,5 +51,31 @@ class Patient {
     add(key, value) {
         this.data.set(key, value);
     }
+}
 
+/**
+ * Parameter related classes
+ */
+class Parameter {
+    constructor(name, type) {
+        this.name = name;
+        this.type = type;
+        this.values = new Set();
+    }
+
+    addValue(value) {
+        this.values.add(value);
+    }
+
+    getValues() {
+        return this.values;
+    }
+
+    setType(type) {
+        this.type = type;
+    }
+
+    getType() {
+        return this.type;
+    }
 }

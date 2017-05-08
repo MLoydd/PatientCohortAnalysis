@@ -14,11 +14,23 @@
 </head>
 <body>
 
-<div id="controller">
-    <div id="queryContainer" class="query-container">
-        <input id="inputProperty" onkeydown="queryInputFieldKeyDownHandler()" placeholder="property">
-        <input id="inputQuery" onkeydown="queryInputFieldKeyDownHandler()" placeholder="query">
-        <button id="btnFilter" onclick="applyFilterOnClickHandler()">Apply Filter</button>
+<div id="queryContainer" class="query-container">
+    <input id="inputProperty" onkeydown="queryInputFieldKeyDownHandler()" placeholder="property">
+    <input id="inputQuery" onkeydown="queryInputFieldKeyDownHandler()" placeholder="query">
+    <button id="btnFilter" onclick="applyFilterOnClickHandler()">Apply Filter</button>
+</div>
+
+<div id="modalContainer" class="modal">
+    <!-- Modal content -->
+    <div class="modal-content">
+        <div class="modal-content-header">
+            <h2 id="modalHeader">Modal Header</h2>
+            <span class="modal-close">&times;</span>
+        </div>
+        <div id="modalBody" class="modal-content-body"></div>
+        <div class="modal-content-footer">
+            <button class="modal-btn">Set Ordinal</button>
+        </div>
     </div>
 </div>
 
@@ -61,7 +73,7 @@
 <script src="js/helper/customError.js"></script>
 <script src="js/util/util.js"></script>
 
-<script src="js/modal/cohort.js"></script>
+<script src="js/modal/modal.js"></script>
 
 <script src="js/service/dataQueryingService.js"></script>
 <script src="js/service/dataSelectionService.js"></script>

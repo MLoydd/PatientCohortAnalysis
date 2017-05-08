@@ -3,7 +3,7 @@
  */
 
 const DATA_SET = new Set();
-const PROPERTIES_MAP = new Map();
+const PARAMETER_MAP = new Map();
 
 
 const CSV_FILE_1 = "./csv/data.csv";
@@ -17,23 +17,30 @@ function loadData() {
             return;
         }
 
-        for (let [k, v] of Object.entries(csv[0])) {
-            let type = getTypeOfValue(v);
-            PROPERTIES_MAP.set(k.trim().toLowerCase(), type);
-        }
-
         csv.forEach(function (row) {
-            let patient = new Patient(row.P_NUM);
+            let patient = new Patient(row.P_ID);
             for (let [k, v] of Object.entries(row)) {
-                let value = parseValueToType(v.trim().toLowerCase());
-                patient.add(k.trim().toLowerCase(), value);
+                let name = k.trim().toLowerCase();
+                let value = v.trim().toLowerCase();
+                patient.add(name, parseValueToType(value));
+
+                if (!PARAMETER_MAP.has(name)) {
+                    PARAMETER_MAP.set(name, new Parameter(name, getTypeOfValue(value)));
+                }
+
+                let parameter = PARAMETER_MAP.get(name);
+                if (parameter.getType() === null) {
+                    parameter.setType(getTypeOfValue(value));
+                }
+
+                parameter.addValue(value);
             }
 
             DATA_SET.add(patient);
         });
 
         console.log(`DATA_SET.size : ${DATA_SET.size}`);
-        console.log(`PROPERTIES_MAP.size : ${PROPERTIES_MAP.size}`);
+        console.log(`PROPERTIES_MAP.size : ${PARAMETER_MAP.size}`);
         initApp();
     });
 }
@@ -78,7 +85,7 @@ function parseValueToType(value) {
     return value;
 }
 
-function executeQuery(dataset, property, query) {
+function executeQuery(dataset, parameterName, query) {
     let operator = findComparisionOperatorInString(query);
     let operands = getComparisionOperandsFromQuery(query, operator);
     let operand1 = parseValueToType(operands[0]);
@@ -86,9 +93,9 @@ function executeQuery(dataset, property, query) {
 
     let subDataset = new Set();
     for (let p of dataset) {
-        let value = p.data.get(property);
+        let value = p.data.get(parameterName);
         if (performComparisionOperation(operator, value, operand1, operand2)) {
-            subDataset.add(p);
+            subDataset.addValue(p);
         }
     }
 
@@ -97,31 +104,35 @@ function executeQuery(dataset, property, query) {
 
 function getAnalysableProperties() {
     let set = new Set();
-    for (let [k, v] of PROPERTIES_MAP) {
-        if (v === "number" || v === "date") {
-            set.add(k);
+    for (let p of PARAMETER_MAP.values()) {
+        if (p.type === "number" || p.type === "date") {
+            set.add(p.name);
         }
     }
     return set;
 }
 
-function getPropertyType(property) {
-    return PROPERTIES_MAP.get(property);
+function getParameterType(parameterName) {
+    return PARAMETER_MAP.get(parameterName).getType();
 }
 
-function getPropertiesMap() {
-    return PROPERTIES_MAP;
+function getParameters() {
+    return PARAMETER_MAP.values();
 }
 
-function findProperty(property) {
-    for (let p of PROPERTIES_MAP.keys()) {
-        if (p === property) {
-            console.log(`property found: ${p} for ${property}`);
+function getValueSetOfParameter(parameterName) {
+    return PARAMETER_MAP.get(parameterName).getValues();
+}
+
+function findParameter(parameterName) {
+    for (let p of PARAMETER_MAP.keys()) {
+        if (p === parameterName) {
+            console.log(`parameter found: ${p} for ${parameterName}`);
             return p;
         }
     }
 
-    console.log(`No property found for value : ${property}`);
+    console.log(`No parameter found for value : ${parameterName}`);
     return null;
 }
 

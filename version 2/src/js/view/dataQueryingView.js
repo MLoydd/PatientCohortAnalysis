@@ -272,21 +272,83 @@ function getCohortGroupColor(cohortGroupId) {
      }*/
 }
 
-function addItemToPropertiesInformationColumn(propertyName, type) {
+function addItemToPropertiesInformationColumn(parameterName, type) {
     let row = d3.select("#col_propertiesInformation").append("div").attr("class", "row align-items-center");
-    row.append("div").attr("class", "col-7").html(propertyName);
+    row.append("div").attr("class", "col-7").html(parameterName);
 
     let item = row.append("div").attr("class", "col-5 columnPropertyType");
     item.append("span").attr("class", "dataTypeTooltip").html(type)
         .append("span").attr("class", "tooltipText").html(getToolTipText(type));
 
-    let dropdown = item.append("span").attr("class", "dropdownSelection");
-    dropdown.append("img").attr("src", "img/dropdown_icon.svg").attr("class", "dropdownIcon").on("click", () => {
-        document.getElementById("dropdownBlock").classList.toggle("show");
-    });
+    if (type !== "string") {
+        return;
+    }
 
-    /*dropdown.append("div").attr("id", "dropdownBlock").attr("class", "dropdown-content")
-     .append("span").html(getOtherTypes(type));*/
+    let dropdown = item.append("span").attr("class", "dropdownSelection")
+        .append("img").attr("src", "img/dropdown_icon.svg").attr("class", "dropdownIcon");
+    dropdown.append("span").attr("class", "dataTypeTooltip").append("span").attr("class", "tooltipText").html("change to ordinal data type");
+    dropdown.on("click", () => {
+
+        let modal = document.getElementById("modalContainer");
+        let spanCloseIcon = document.getElementsByClassName("modal-close")[0];
+        spanCloseIcon.onclick = () => closeModal();
+
+        document.getElementById("modalHeader").innerHTML = parameterName;
+
+        let modalBody = document.getElementById("modalBody");
+
+        let parameterValueSet = getValueSetOfParameter(parameterName);
+        for (let value of parameterValueSet) {
+            let dropItem = document.createElement("div");
+            dropItem.classList.add("dropField");
+            dropItem.ondrop = (event) => {
+                event.preventDefault();
+                let id = event.dataTransfer.getData("text");
+                let element = document.getElementById(id);
+
+                element.parentNode.appendChild(event.target);
+                event.currentTarget.appendChild(element);
+                event.target.style.border = null;
+            };
+            dropItem.ondragover = (event) => {
+                event.preventDefault();
+            };
+            dropItem.ondragenter = (event) => {
+                event.target.style.border = "1px inset #0000af";
+            };
+            dropItem.ondragleave = (event) => {
+                event.target.style.border = null;
+            };
+
+            let dragItem = document.createElement("div");
+            dragItem.classList.add("dragItem");
+            dragItem.setAttribute("draggable", true);
+            dragItem.appendChild(document.createTextNode(value));
+            dragItem.setAttribute("id", `modal-${parameterName}_${value}`);
+            dragItem.ondragstart = (event) => {
+                event.dataTransfer.setData("text", event.target.id);
+            };
+
+            dropItem.appendChild(dragItem);
+            modalBody.appendChild(dropItem);
+        }
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function (event) {
+            if (event.target === modal) {
+                closeModal();
+            }
+        };
+
+        modal.style.display = "block";
+    });
+}
+
+function closeModal() {
+    let modal = document.getElementById("modalContainer");
+    modal.style = null;
+
+    d3.select("#modalBody").selectAll("*").remove();
 }
 
 function getToolTipText(type) {

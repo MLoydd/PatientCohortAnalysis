@@ -58,8 +58,8 @@ function getScatterPlotChartData() {
         s[i] = SERIES[i];
     }
 
-    let hAxisType = getPropertyType(properties[0]);
-    let vAxisType = getPropertyType(properties[1]);
+    let hAxisType = getParameterType(properties[0]);
+    let vAxisType = getParameterType(properties[1]);
 
     drawScatterPlotChart(dataArray, properties[0], properties[1], s, a, hAxisType, vAxisType);
 }
@@ -163,7 +163,7 @@ function composeDataArrayWithTwoProperty(dataset, propertyX, propertyY, cohortsL
 }
 
 function convertToChartFormat(value, property) {
-    if (getPropertyType(property) === "date") {
+    if (getParameterType(property) === "date") {
         return new Date(value);
     }
 

@@ -28,8 +28,8 @@ function copyBaseCohortNode(dataset) {
     addCohortNodeToSelection(cohortNode);
 }
 
-function queryCohort(cohortNode, property, query) {
-    let p = findProperty(property);
+function queryCohort(cohortNode, parameterName, query) {
+    let p = findParameter(parameterName);
     if (!p) {
         throw new PropertyInputError("Property does NOT Exist.\nPlease enter the exact name as it is in the CSV file.");
     }
@@ -202,8 +202,8 @@ function redrawView() {
  * util functions
  */
 function populatePropertiesInformationColumn() {
-    let map = getPropertiesMap();
-    for (let [k, v] of map) {
-        addItemToPropertiesInformationColumn(k, v);
+    let parameters = getParameters();
+    for (let p of parameters) {
+        addItemToPropertiesInformationColumn(p.name, p.type);
     }
 }
