@@ -58,10 +58,17 @@ function getScatterPlotChartData() {
         s[i] = SERIES[i];
     }
 
-    let hAxisType = getParameterType(properties[0]);
-    let vAxisType = getParameterType(properties[1]);
+    let hAxisType = getAxisType(getParameterType(properties[0]));
+    let vAxisType = getAxisType(getParameterType(properties[1]));
 
     drawScatterPlotChart(dataArray, properties[0], properties[1], s, a, hAxisType, vAxisType);
+}
+
+function getAxisType(type) {
+    if (type === "ordinal") {
+        return "string"
+    }
+    return type;
 }
 
 /**
