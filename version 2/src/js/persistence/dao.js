@@ -95,7 +95,7 @@ function executeQuery(dataset, parameterName, query) {
     for (let p of dataset) {
         let value = p.data.get(parameterName);
         if (performComparisionOperation(operator, value, operand1, operand2)) {
-            subDataset.addValue(p);
+            subDataset.add(p);
         }
     }
 
@@ -125,7 +125,7 @@ function getValueSetOfParameter(parameterName) {
 }
 
 function setValuesOfParameter(parameterName, values) {
-    if(!PARAMETER_MAP.has(parameterName)) {
+    if (!PARAMETER_MAP.has(parameterName)) {
         return;
     }
 
