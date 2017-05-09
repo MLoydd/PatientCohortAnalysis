@@ -8,7 +8,7 @@
 }
 
 .rightTriangle {
-    fill: #5cb85c;
+    fill: #6f0fbf;
     opacity: 0.3;
 }
 
@@ -17,7 +17,7 @@
 }
 
 .bottomTriangle {
-    fill: #5cb85c;
+    fill: #6f0fbf;
     opacity: 0.3;
 }
 
@@ -35,13 +35,12 @@
 .propertiesOverviewTitleBox {
     height: 40px;
     border-right: 2.5px solid #979797;
-    border-top: 1px solid #eaeaea;
     border-bottom: 0.5px solid #eaeaea;
 }
 
 .close-x {
     fill: transparent;
-    stroke: red;
+    stroke: #ff0000;
     stroke-linecap: round;
     stroke-width: 5;
     stroke-opacity: 0.3;
@@ -67,7 +66,7 @@
 }
 
 .scrollbar::-webkit-scrollbar-thumb {
-    background-color: #3a5adf;
+    background-color: #6f0fbf;
 }
 
 /* tooltip */

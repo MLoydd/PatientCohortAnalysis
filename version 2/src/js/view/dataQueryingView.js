@@ -153,7 +153,7 @@ function addCohortNodeToSelection(cohortNode, prevCohortNode) {
         markElement(prevCohortNode.nodeConfig.id, null);
     }
 
-    let nodeColor = getCohortGroupColor(cohortNode.cohort.groupId);
+    let nodeColor = getCohortGroupColor();
     updateDataSelectionView(cohortNode.cohort, nodeColor);
     markElement(cohortNode.nodeConfig.id, `fill: ${nodeColor}`);
 }
@@ -251,25 +251,8 @@ function removeCohortNodeFromQueryingView(groupId) {
     group.parentNode.removeChild(group);
 }
 
-function getCohortGroupColor(cohortGroupId) {
-    return "#aacaea";
-
-    /*let split = cohortGroupId.split("-");
-
-     switch (Number(split[1])) {
-     case 0:
-     return "#c9c9ff";
-     case 1:
-     return "#ffc0cb";
-     case 2:
-     return "#dda0da";
-     case 3:
-     return "#d1c181";
-     case 4:
-     return "#ffc100";
-     default:
-     return "#71e1c1";
-     }*/
+function getCohortGroupColor() {
+    return "#2fbfff";
 }
 
 function addItemToPropertiesInformationColumn(parameterName, type) {
@@ -333,6 +316,7 @@ function addItemToPropertiesInformationColumn(parameterName, type) {
             }
             setValuesOfParameter(parameterName, values);
             updatePropertiesColumn();
+            updateParameterColumn();
             closeModal();
         };
 

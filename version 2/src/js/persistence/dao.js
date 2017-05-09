@@ -102,10 +102,10 @@ function executeQuery(dataset, parameterName, query) {
     return subDataset;
 }
 
-function getAnalysableProperties() {
+function getAnalysableParameters() {
     let set = new Set();
     for (let p of PARAMETER_MAP.values()) {
-        if (p.type === "number" || p.type === "date") {
+        if (p.type === "number" || p.type === "date" || p.type === "ordinal") {
             set.add(p.name);
         }
     }

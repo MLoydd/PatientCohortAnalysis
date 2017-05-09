@@ -103,6 +103,10 @@ function onPropertyItemClick(property) {
     addPropertyToPropertySet(property);
 }
 
+function clearParameterColumn() {
+    d3.select("#col_properties").selectAll("*").remove();
+}
+
 /**
  * cohort column functions
  */

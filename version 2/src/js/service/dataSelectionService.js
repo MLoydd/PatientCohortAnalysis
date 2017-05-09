@@ -55,12 +55,22 @@ function addCohortToDataSelection(cohort) {
 }
 
 function showGrid() {
-    let properties = getAnalysableProperties();
+    let properties = getAnalysableParameters();
     for (let p of properties) {
         addPropertyItem(p);
     }
 
     showSelectionView();
+}
+
+function updateParameterColumn() {
+    clearParameterColumn();
+    clearDataSelectionViewGrid();
+    let copy = new Map(SELECTED_COHORT_MAP.entries());
+    SELECTED_COHORT_MAP.clear();
+    for (let c of copy.values()) {
+        updateDataSelectionView(c, getCohortGroupColor());
+    }
 }
 
 function addCohortColumn(columnId, columnColor, nodeWidth) {
@@ -76,7 +86,7 @@ function addCohortColumnItems(columnId, dataset) {
 }
 
 function calculateAvailabilityOfEachProperty(dataset) {
-    let properties = getAnalysableProperties();
+    let properties = getAnalysableParameters();
     let map = new Map();
     for (let p of dataset) {
         for (let [k, v] of p.data) {
