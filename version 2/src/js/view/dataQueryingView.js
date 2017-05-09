@@ -263,7 +263,7 @@ function addItemToPropertiesInformationColumn(parameterName, type) {
     let item = row.append("div").attr("class", "col-5 columnPropertyType");
     item.append("span").attr("class", "dataTypeSpan").attr("title", getToolTipText(type, parameterValueSet)).html(type);
 
-    if (type !== "string") {
+    if (type !== "string" && type !== "ordinal") {
         return;
     }
 
