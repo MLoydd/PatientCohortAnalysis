@@ -34,7 +34,7 @@
 
 .propertiesOverviewTitleBox {
     height: 40px;
-    border-right: 2.5px solid #bababa;
+    border-right: 2.5px solid #979797;
     border-top: 1px solid #eaeaea;
     border-bottom: 0.5px solid #eaeaea;
 }
@@ -67,7 +67,7 @@
 }
 
 .scrollbar::-webkit-scrollbar-thumb {
-    background-color: #3b5998;
+    background-color: #3a5adf;
 }
 
 /* tooltip */
@@ -76,47 +76,9 @@
     justify-content: space-between;
 }
 
-.dataTypeTooltip {
-    /*position: relative;*/
+.dataTypeSpan {
     text-decoration: underline dotted #bbbbbb;
     cursor: help;
-}
-
-.dataTypeTooltip .tooltipText {
-    visibility: hidden;
-    width: 250px;
-    background-color: #555;
-    color: #fff;
-    text-align: center;
-    padding: 5px 0;
-    border-radius: 6px;
-    font-size: 14px;
-
-    /* Position the tooltip text */
-    position: absolute;
-    z-index: 17;
-    bottom: 125%;
-    left: -70%;
-    margin-left: -60px;
-
-    /* Fade in tooltip */
-    opacity: 0;
-    transition: opacity 1s;
-}
-
-.dataTypeTooltip .tooltipText::after { /* Tooltip arrow */
-    content: "";
-    position: absolute;
-    top: 100%;
-    left: 70%;
-    margin-left: -5px;
-    border: 5px solid transparent;
-    border-top-color: #555;
-}
-
-.dataTypeTooltip:hover .tooltipText { /* Show the tooltip text when you mouse over the tooltip container */
-    visibility: visible;
-    opacity: 1;
 }
 
 /* dropdown */
@@ -373,8 +335,9 @@
 }
 
 .modal-btn:hover {
-    box-shadow: 0 0 2px 2px #2aabd2;
+    box-shadow: 0 0 2px 2px #31b0d5;
     border-style: inset;
+    cursor: pointer;
 }
 
 /*** drag & drop ***/
@@ -385,7 +348,7 @@
 }
 
 .dropField:nth-child(odd) {
-    background-color: #f2f2f2;
+    background-color: #f4f4f4;
 }
 
 .dragItem {

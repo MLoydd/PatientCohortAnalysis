@@ -78,4 +78,9 @@ class Parameter {
     getType() {
         return this.type;
     }
+
+    changeToOrdinal(values) {
+        this.type = "ordinal";
+        this.values = values;
+    }
 }

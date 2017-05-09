@@ -124,6 +124,14 @@ function getValueSetOfParameter(parameterName) {
     return PARAMETER_MAP.get(parameterName).getValues();
 }
 
+function setValuesOfParameter(parameterName, values) {
+    if(!PARAMETER_MAP.has(parameterName)) {
+        return;
+    }
+
+    PARAMETER_MAP.get(parameterName).changeToOrdinal(values);
+}
+
 function findParameter(parameterName) {
     for (let p of PARAMETER_MAP.keys()) {
         if (p === parameterName) {

@@ -276,29 +276,30 @@ function addItemToPropertiesInformationColumn(parameterName, type) {
     let row = d3.select("#col_propertiesInformation").append("div").attr("class", "row align-items-center");
     row.append("div").attr("class", "col-7").html(parameterName);
 
+    let parameterValueSet = getValueSetOfParameter(parameterName);
     let item = row.append("div").attr("class", "col-5 columnPropertyType");
-    item.append("span").attr("class", "dataTypeTooltip").html(type)
-        .append("span").attr("class", "tooltipText").html(getToolTipText(type));
+    item.append("span").attr("class", "dataTypeSpan").attr("title", getToolTipText(type, parameterValueSet)).html(type);
 
     if (type !== "string") {
         return;
     }
 
-    let dropdown = item.append("span").attr("class", "dropdownSelection")
-        .append("img").attr("src", "img/dropdown_icon.svg").attr("class", "dropdownIcon");
-    dropdown.append("span").attr("class", "dataTypeTooltip").append("span").attr("class", "tooltipText").html("change to ordinal data type");
-    dropdown.on("click", () => {
-
-        let modal = document.getElementById("modalContainer");
-        let spanCloseIcon = document.getElementsByClassName("modal-close")[0];
-        spanCloseIcon.onclick = () => closeModal();
+    item.append("span").attr("class", "dropdownSelection")
+        .append("img").attr("src", "img/dropdown_icon.svg").attr("title", "click to change the data type to ordinal")
+        .attr("class", "dropdownIcon").on("click", () => {
 
         document.getElementById("modalHeader").innerHTML = parameterName;
+        (document.getElementsByClassName("modal-close")[0]).onclick = () => closeModal();
 
-        let modalBody = document.getElementById("modalBody");
-
-        let parameterValueSet = getValueSetOfParameter(parameterName);
+        //let parameterValueSet = getValueSetOfParameter(parameterName);
         for (let value of parameterValueSet) {
+            let dragItem = document.createElement("div");
+            dragItem.classList.add("dragItem");
+            dragItem.setAttribute("draggable", true);
+            dragItem.appendChild(document.createTextNode(value));
+            dragItem.setAttribute("id", `modal-${parameterName}_${value}`);
+            dragItem.ondragstart = (event) => event.dataTransfer.setData("text", event.target.id);
+
             let dropItem = document.createElement("div");
             dropItem.classList.add("dropField");
             dropItem.ondrop = (event) => {
@@ -310,58 +311,57 @@ function addItemToPropertiesInformationColumn(parameterName, type) {
                 event.currentTarget.appendChild(element);
                 event.target.style.border = null;
             };
-            dropItem.ondragover = (event) => {
-                event.preventDefault();
-            };
-            dropItem.ondragenter = (event) => {
-                event.target.style.border = "1px inset #0000af";
-            };
-            dropItem.ondragleave = (event) => {
-                event.target.style.border = null;
-            };
-
-            let dragItem = document.createElement("div");
-            dragItem.classList.add("dragItem");
-            dragItem.setAttribute("draggable", true);
-            dragItem.appendChild(document.createTextNode(value));
-            dragItem.setAttribute("id", `modal-${parameterName}_${value}`);
-            dragItem.ondragstart = (event) => {
-                event.dataTransfer.setData("text", event.target.id);
-            };
-
+            dropItem.ondragover = (event) => event.preventDefault();
+            dropItem.ondragenter = (event) => event.target.style.border = "1px inset #0000af";
+            dropItem.ondragleave = (event) => event.target.style.border = null;
             dropItem.appendChild(dragItem);
-            modalBody.appendChild(dropItem);
+            document.getElementById("modalBody").appendChild(dropItem);
         }
 
         // When the user clicks anywhere outside of the modal, close it
         window.onclick = function (event) {
-            if (event.target === modal) {
+            if (event.target === document.getElementById("modalContainer")) {
                 closeModal();
             }
         };
 
-        modal.style.display = "block";
+        document.getElementById("modelButton").onclick = (event) => {
+            let childNodes = document.getElementById("modalBody").childNodes;
+            let values = new Set();
+            for (let n of childNodes) {
+                values.add(n.textContent);
+            }
+            setValuesOfParameter(parameterName, values);
+            updatePropertiesColumn();
+            closeModal();
+        };
+
+        document.getElementById("modalContainer").style.display = "block";
     });
 }
 
 function closeModal() {
-    let modal = document.getElementById("modalContainer");
-    modal.style = null;
-
+    document.getElementById("modalContainer").style = null;
     d3.select("#modalBody").selectAll("*").remove();
 }
 
-function getToolTipText(type) {
+function updatePropertiesColumn() {
+    d3.select("#col_propertiesInformation").selectAll("*").remove();
+    populatePropertiesInformationColumn();
+}
+
+function getToolTipText(type, values) {
     switch (type) {
         case "number":
-            return `possible filter operators:<br>< x, <= x, >= x, > x, = x, x - y<br>e.g. <= 40, 30 - 60`;
+            return `possible filter operators:\n< x ; <= x ; >= x ; > x ; = x ; x - y\ne.g. <= 40 ; 30 - 60`;
+        case "date":
+            return `possible filter operators: x - y\ne.g. 1.1.1970 - 12.12.2012 ; 1970 - 2012`;
+        case "ordinal":
+            let a = Array.from(values);
+            return `available values:\n${a.join(` ; `)}`;
         case "string":
-            return `possible filter operators:<br>use plain text without any operators`;
+            return `possible filter operators:\nuse plain text without any operators`;
         default:
             return "undefined";
     }
-}
-
-function getAllTypes() {
-    return ["number", "text", "date", "ordinal"];
 }
