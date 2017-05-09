@@ -54,19 +54,14 @@ function drawCohortNodeElements(cohortNode) {
     drawRect(nodeConfig.nodeGroupId, nodeConfig.id, nodeConfig.clientRect);
     drawText(nodeConfig.nodeGroupId, nodeConfig.text, nodeConfig.clientRect);
 
-    drawBottomTriangle(nodeConfig.nodeGroupId, nodeConfig.clientRect)
-        .on("click", () => onBottomTriangleClickHandler(cohortNode));
-
-    addRightTriangle(cohortNode);
+    addTriangleDown(cohortNode);
+    addTriangleRight(cohortNode);
 
     if (!isCoreBaseCohortNode(nodeConfig.id)) {
-        drawCloseIcon(nodeConfig.nodeGroupId, nodeConfig.clientRect).on("click", () => {
-            removeCohortNodeAndItsDependencies(cohortNode);
-        }).on("mouseover", () => {
-            changeStrokeOpacityOfCohortNodeDescendantsCloseIcon(cohortNode, 1.0);
-        }).on("mouseout", () => {
-            changeStrokeOpacityOfCohortNodeDescendantsCloseIcon(cohortNode, null);
-        });
+        drawCloseIcon(nodeConfig.nodeGroupId, nodeConfig.clientRect)
+            .on("click", () => removeCohortNodeAndItsDependencies(cohortNode))
+            .on("mouseover", () => changeStrokeOpacityOfCohortNodeDescendantsCloseIcon(cohortNode, 1.0))
+            .on("mouseout", () => changeStrokeOpacityOfCohortNodeDescendantsCloseIcon(cohortNode, null));
     }
 }
 
@@ -94,12 +89,12 @@ function drawText(nodeGroupId, text, clientRect) {
         .attr("x", clientRect.left + 10).attr("y", clientRect.top + clientRect.height / 2);
 }
 
-function addRightTriangle(cohortNode) {
-    drawRightTriangle(cohortNode.nodeConfig.nodeGroupId, cohortNode.nodeConfig.clientRect)
+function addTriangleRight(cohortNode) {
+    drawTriangleRight(cohortNode.nodeConfig.nodeGroupId, cohortNode.nodeConfig.clientRect)
         .on("click", () => onRightTriangleClickHandler(cohortNode));
 }
 
-function drawRightTriangle(nodeGroupId, clientRect) {
+function drawTriangleRight(nodeGroupId, clientRect) {
     let x1 = clientRect.left + RANGE.max;
     let y1 = clientRect.top + clientRect.height;
     let x2 = clientRect.left + RANGE.max;
@@ -111,11 +106,16 @@ function drawRightTriangle(nodeGroupId, clientRect) {
     return getNodeGroup(nodeGroupId).append("polygon").attr("points", p).attr("class", "rightTriangle");
 }
 
-function removeRightTriangle(nodeGroupId) {
+function removeTriangleRight(nodeGroupId) {
     getNodeGroup(nodeGroupId).select(".rightTriangle").remove();
 }
 
-function drawBottomTriangle(nodeGroupId, clientRect) {
+function addTriangleDown(cohortNode) {
+    drawTriangleDown(cohortNode.nodeConfig.nodeGroupId, cohortNode.nodeConfig.clientRect)
+        .on("click", () => onBottomTriangleClickHandler(cohortNode));
+}
+
+function drawTriangleDown(nodeGroupId, clientRect) {
     let x1 = clientRect.left + RANGE.max / 2 - 30;
     let y1 = clientRect.top + clientRect.height;
     let x2 = clientRect.left + RANGE.max / 2 + 30;
@@ -127,7 +127,7 @@ function drawBottomTriangle(nodeGroupId, clientRect) {
     return getNodeGroup(nodeGroupId).append("polygon").attr("points", p).attr("class", "bottomTriangle");
 }
 
-function removeBottomTriangle(nodeGroupId) {
+function removeTriangleDown(nodeGroupId) {
     getNodeGroup(nodeGroupId).select(".bottomTriangle").remove();
 }
 
@@ -161,7 +161,7 @@ function addCohortNodeToSelection(cohortNode, prevCohortNode) {
 function onRightTriangleClickHandler(cohortNode) {
     if (isBaseCohortNode(cohortNode.nodeConfig.id)) {
         copyBaseCohortNode(cohortNode.cohort.dataset);
-        removeRightTriangle(cohortNode.nodeConfig.nodeGroupId);
+        //removeTriangleRight(cohortNode.nodeConfig.nodeGroupId);
         return;
     }
 
@@ -224,7 +224,7 @@ function applyFilterOnClickHandler() {
         }
         return;
     }
-    removeBottomTriangle(cohortNode.nodeConfig.nodeGroupId);
+    removeTriangleDown(cohortNode.nodeConfig.nodeGroupId);
     resetQueryElements();
 }
 

@@ -94,7 +94,7 @@ function copyCohortNodesToNewCohortGroup(cohortNode, linkedListToCopy) {
         if (linkedListToCopy.head === nodeToCopy) {
             drawBaseNodeGroup(c);
         } else {
-            removeBottomTriangle(prevNode.nodeConfig.nodeGroupId);
+            removeTriangleDown(prevNode.nodeConfig.nodeGroupId);
             drawCohortNodeGroup(c);
         }
         addCohortNodeToSelection(c, prevNode);
@@ -156,7 +156,9 @@ function removeCohortNodeAndItsDependencies(cohortNode) {
     linkedList.remove(cohortNode);
 
     if (linkedList.length > 0) {
-        addCohortNodeToSelection(linkedList.get(linkedList.length - 1));
+        let n = linkedList.get(linkedList.length - 1);
+        addCohortNodeToSelection(n);
+        addTriangleDown(n);
         return;
     }
 
@@ -194,7 +196,7 @@ function redrawView() {
     }
 
     if (copy.size === 0) {
-        addRightTriangle(l.get(0));
+        addTriangleRight(l.get(0));
     }
 }
 
